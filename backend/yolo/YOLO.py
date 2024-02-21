@@ -15,6 +15,10 @@ class YOLOv8:
         path (str): The path to the ONNX model file.
         conf_thres (float, optional): The confidence threshold for object detection. Defaults to 0.7.
         iou_thres (float, optional): The IOU threshold for non-maxima suppression. Defaults to 0.5.
+    Returns:
+        boxes (numpy.ndarray): The bounding boxes of the detected objects.
+        scores (numpy.ndarray): The confidence scores of the detected objects.
+        class_ids (numpy.ndarray): The predicted class IDs of the detected objects.
     """
 
     def __init__(self, path, conf_thres=0.7, iou_thres=0.5):
@@ -36,6 +40,17 @@ class YOLOv8:
         self.get_output_details()
 
     def detect_objects(self, image):
+        """
+        Detects objects in the given image using the YOLOv8 model.
+
+        Args:
+            image (numpy.ndarray): The input image.
+
+        Returns:
+            boxes (numpy.ndarray): The bounding boxes of the detected objects.
+            scores (numpy.ndarray): The confidence scores of the detected objects.
+            class_ids (numpy.ndarray): The predicted class IDs of the detected objects.
+        """
         input_tensor = self.prepare_input(image)
 
         # Perform inference on the image
@@ -137,6 +152,9 @@ class YOLOv8_cls:
     Args:
         path (str): The path to the ONNX model file.
         conf_thres (float, optional): The confidence threshold for classification. Defaults to 0.7.
+    Returns:
+        class_ids (numpy.ndarray): The predicted class IDs of the detected objects.
+        confidence (numpy.ndarray): The confidence scores of the detected objects.
     """
 
     def __init__(self, path, conf_thres=0.7):
@@ -165,17 +183,17 @@ class YOLOv8_cls:
             image (numpy.ndarray): The input image.
 
         Returns:
-            numpy.ndarray: The predicted class IDs of the detected objects.
-
+        class_ids: numpy.ndarray: The predicted class IDs of the detected objects.
+        confidence: numpy.ndarray: The confidence scores of the detected objects.
         """
         input_tensor = self.prepare_input(image)
 
         # Perform inference on the image
         outputs = self.inference(input_tensor)
 
-        class_ids, predictions = self.process_output(outputs)
+        class_ids, confidence = self.process_output(outputs)
 
-        return class_ids, predictions
+        return class_ids, confidence
 
     def prepare_input(self, image):
 
