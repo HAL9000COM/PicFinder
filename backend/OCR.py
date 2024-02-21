@@ -8,7 +8,7 @@ def OCR(img: numpy.ndarray, model: str):
         result = process(img)
 
         if result is None or len(result) == 0:
-            return None
+            return {}
 
         texts = [i[1] for i in result]
         confidences = [i[2] for i in result]
