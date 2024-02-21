@@ -3,10 +3,19 @@ import cv2
 import numpy as np
 import onnxruntime
 
-from yolo.utils import xywh2xyxy,multiclass_nms
+from yolo.utils import xywh2xyxy, multiclass_nms
 
 
 class YOLOv8:
+    """
+    YOLOv8 is a class that represents the YOLOv8 object detection model.
+    Pre-trained on the COCO or the Open Images V7 dataset.
+
+    Args:
+        path (str): The path to the ONNX model file.
+        conf_thres (float, optional): The confidence threshold for object detection. Defaults to 0.7.
+        iou_thres (float, optional): The IOU threshold for non-maxima suppression. Defaults to 0.5.
+    """
 
     def __init__(self, path, conf_thres=0.7, iou_thres=0.5):
         self.conf_threshold = conf_thres
