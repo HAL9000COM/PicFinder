@@ -1,8 +1,9 @@
 import numpy
+from PIL.Image import Image
 
 
 def object_detection(
-    image: numpy.ndarray,
+    image: Image,
     model: str,
     conf_threshold: float = 0.7,
     iou_threshold: float = 0.5,

@@ -1,9 +1,9 @@
 import time
-import cv2
+
 import numpy as np
 import onnxruntime
-
-from yolo.utils import xywh2xyxy, multiclass_nms
+from PIL import Image
+from yolo.utils import multiclass_nms, xywh2xyxy
 
 
 class YOLOv8:
@@ -39,12 +39,12 @@ class YOLOv8:
         self.get_input_details()
         self.get_output_details()
 
-    def detect_objects(self, image):
+    def detect_objects(self, image: Image.Image):
         """
         Detects objects in the given image using the YOLOv8 model.
 
         Args:
-            image (numpy.ndarray): The input image.
+            image (PIL.Image.Image): The input image.
 
         Returns:
             boxes (numpy.ndarray): The bounding boxes of the detected objects.
@@ -60,15 +60,14 @@ class YOLOv8:
 
         return self.boxes, self.scores, self.class_ids
 
-    def prepare_input(self, image):
-        self.img_height, self.img_width = image.shape[:2]
-
+    def prepare_input(self, image: Image.Image):
+        self.img_height, self.img_width = image.size
 
         # Resize input image
-        input_img = cv2.resize(image, (self.input_width, self.input_height))
+        input_img = image.resize((self.input_width, self.input_height))
 
         # Scale input pixel values to 0 to 1
-        input_img = input_img / 255.0
+        input_img = np.array(input_img) / 255.0
         input_img = input_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
@@ -174,12 +173,12 @@ class YOLOv8_cls:
         self.get_input_details()
         self.get_output_details()
 
-    def predict(self, image):
+    def predict(self, image: Image.Image):
         """
         Detects objects in the given image using the YOLOv8 model.
 
         Args:
-            image (numpy.ndarray): The input image.
+            image (PIL.Image.Image): The input image.
 
         Returns:
         class_ids: numpy.ndarray: The predicted class IDs of the detected objects.
@@ -194,15 +193,14 @@ class YOLOv8_cls:
 
         return class_ids, confidence
 
-    def prepare_input(self, image):
-
-        self.img_height, self.img_width = image.shape[:2]
+    def prepare_input(self, image: Image.Image):
+        self.img_height, self.img_width = image.size
 
         # Resize input image
-        input_img = cv2.resize(image, (self.input_width, self.input_height))
+        input_img = image.resize((self.input_width, self.input_height))
 
         # Scale input pixel values to 0 to 1
-        input_img = input_img / 255.0
+        input_img = np.array(input_img) / 255.0
         input_img = input_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 

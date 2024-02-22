@@ -1,6 +1,6 @@
-import numpy
+from PIL.Image import Image
 
-def classify(image: numpy.ndarray, model: str, threshold: float = 0.7):
+def classify(image: Image, model: str, threshold: float = 0.7):
     if model == "YOLOv8":
         from yolo.YOLO import YOLOv8_cls
         from resources.label_list import image_net

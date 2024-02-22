@@ -1,21 +1,24 @@
-#%%
+# %%
 
-import numpy
-import cv2
+import io
+
 import xxhash
-#%%
-def read_img(img_path,classification=True,object_detection=True,OCR=True,**kwargs):
+from PIL import Image
 
-    with open (img_path, 'rb') as file:
-        img_hash=xxhash.xxh3_64_hexdigest(file.read())
 
-    # Read the image with OpenCV
-    img = cv2.imread(img_path)
-    # Convert the image from BGR to RGB
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# %%
+def read_img(img_path, classification=True, object_detection=True, OCR=True, **kwargs):
 
-    res_dict={}
-    res_dict["hash"]=img_hash
+    with open(img_path, "rb") as file:
+        img_file = file.read()
+        img_hash = xxhash.xxh3_64_hexdigest(img_file)
+
+    # read image with pillow
+
+    img = Image.open(io.BytesIO(img_file))
+
+    res_dict = {}
+    res_dict["hash"] = img_hash
     if classification:
         # Perform classification
         import classification

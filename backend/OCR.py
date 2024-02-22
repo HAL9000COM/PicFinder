@@ -1,11 +1,9 @@
-import numpy
 
-
-def OCR(img: numpy.ndarray, model: str):
+def OCR(img_file, model: str) -> dict[str, str | float]:
     if model == "RapidOCR":
         from rapidOCR import process
 
-        result = process(img)
+        result = process(img_file)
 
         if result is None or len(result) == 0:
             return {}
