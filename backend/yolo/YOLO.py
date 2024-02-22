@@ -227,7 +227,7 @@ class YOLOv8_cls:
 
         # Get the classes with the confidence>threshold
         class_ids = np.where(predictions > self.conf_threshold)
-        class_ids=class_ids[0]
+        class_ids = class_ids[0]
 
         return class_ids, predictions[class_ids]
 
