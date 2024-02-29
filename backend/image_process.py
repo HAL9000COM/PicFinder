@@ -23,25 +23,19 @@ def read_img(img_path, classification=True, object_detection=True, OCR=True, **k
         # Perform classification
         import classification
 
-        class_dict = classification.classify(img, "YOLOv8", 0.2)
-        if class_dict is None:
-            res_dict["classification"] = ""
-        else:
-            res_dict["classification"] = " ".join(class_dict.keys())
+        cls_res = classification.classify(img, "YOLOv8", 0.2)
+        res_dict["classification"] = cls_res
     if object_detection:
         # Perform object detection
         import object_detection
 
-        obj_dict = object_detection.object_detection(img, "YOLOv8", 0.7, 0.5)
-        if obj_dict is None:
-            res_dict["object_detection"] = ""
-        else:
-            res_dict["object_detection"] = " ".join(obj_dict.keys())
+        obj_res = object_detection.object_detection(img, "YOLOv8", 0.7, 0.5)
+        res_dict["object_detection"] = obj_res
     if OCR:
         # Perform OCR
         import OCR
 
-        OCR_dict = OCR.OCR(img_file, "RapidOCR")
-        res_dict["OCR"] = OCR_dict["text"]
+        OCR_res = OCR.OCR(img_file, "RapidOCR")
+        res_dict["OCR"] = OCR_res
 
     return res_dict
