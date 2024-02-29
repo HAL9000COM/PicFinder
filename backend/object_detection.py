@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy
 from PIL.Image import Image
 

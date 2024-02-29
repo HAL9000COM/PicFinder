@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 image_net = [
     ["n01440764", "tench"],
     ["n01443537", "goldfish"],

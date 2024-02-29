@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from rapidocr_onnxruntime import RapidOCR
 
 
