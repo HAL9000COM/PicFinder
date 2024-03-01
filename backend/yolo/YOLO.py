@@ -5,7 +5,8 @@ import time
 import numpy as np
 import onnxruntime
 from PIL import Image
-from yolo.utils import multiclass_nms, xywh2xyxy
+
+from .utils import multiclass_nms, xywh2xyxy
 
 
 class YOLOv8:
