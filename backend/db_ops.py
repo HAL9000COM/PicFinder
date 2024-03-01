@@ -55,14 +55,14 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 
 class DB:
-    def __init__(self, jieba=False):
+    def __init__(self, path, jieba=False):
 
         extention_path = (
             Path(__file__).resolve().parent / "libsimple-windows-x64" / "simple"
         )
         dict_path = Path(__file__).resolve().parent / "libsimple-windows-x64" / "dict"
 
-        self.conn = sqlite3.connect(":memory:")
+        self.conn = sqlite3.connect(path)
         self.conn.enable_load_extension(True)
         self.conn.load_extension(extention_path.as_posix())
         self.conn.execute(TABLE_SQL)

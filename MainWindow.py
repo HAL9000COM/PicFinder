@@ -2,9 +2,11 @@
 
 from pathlib import Path
 
+from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
-from backend.image_process import read_img
+from backend.db_ops import DB
+from backend.image_process import read_folder
 from MainWindow_ui import Ui_MainWindow
 
 
@@ -24,21 +26,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def index_folder(self):
         self.folder_path = Path(self.lineEdit_folder.text())
         if self.folder_path.exists() and self.folder_path.is_dir():
-            self.index_folder_path(self.folder_path)
+
+            self.index_worker = IndexWorker(self.folder_path)
+            self.index_worker_thread = QThread()
+            self.index_worker.moveToThread(self.index_worker_thread)
+            self.index_worker_thread.started.connect(self.index_worker.run)
+            self.index_worker.finished.connect(self.index_finished)
+            # self.index_worker.progress.connect(self.progressBar.setValue)
+            self.index_worker_thread.start()
+            self.statusbar.showMessage("Indexing...", 3000)
+
         else:
             self.statusbar.showMessage("Invalid Folder Path")
 
-    def index_folder_path(self, folder_path: Path):
-        # list all files in the folder and subfolders
-        file_list = folder_path.rglob("*")
-        for file in folder_path.rglob("*"):
-            if file.is_file():
-                # read the image
-                # img = read_img(file)
-                # print(img)
-                # get relative path
-                print(file.relative_to(folder_path))
-        pass
+    def index_finished(self):
+        self.statusbar.showMessage("Indexing Finished", 3000)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -58,3 +60,64 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.statusbar.showMessage("Invalid Folder Path", 3000)
             else:
                 event.ignore()
+
+
+class IndexWorker(QObject):
+    finished = Signal()
+    progress = Signal(int)
+
+    def __init__(self, folder_path: Path):
+        super(IndexWorker, self).__init__()
+        self.folder = folder_path
+
+    def run(self):
+        db = DB(self.folder / "PicFinder.db")
+
+        results = read_folder(self.folder)
+        for result in results:
+            if "error" in result.keys():
+                continue
+
+            rel_path = Path(result["path"]).relative_to(self.folder).as_posix()
+
+            if result["classification"] is None:
+                classification = ""
+                classification_confidence_avg = 0
+            else:
+                classification = " ".join([res[0] for res in result["classification"]])
+                classification_confidence_list = [
+                    res[1] for res in result["classification"]
+                ]
+                classification_confidence_avg = sum(
+                    classification_confidence_list
+                ) / len(classification_confidence_list)
+
+            if result["object_detection"] is None:
+                object = ""
+                object_confidence_avg = 0
+            else:
+                object = " ".join([res[0] for res in result["object_detection"]])
+                object_confidence_list = [res[1] for res in result["object_detection"]]
+                object_confidence_avg = sum(object_confidence_list) / len(
+                    object_confidence_list
+                )
+
+            if result["OCR"] is None:
+                OCR = ""
+                ocr_confidence_avg = 0
+            else:
+                OCR = " ".join([res[0] for res in result["OCR"]])
+                ocr_confidence_list = [res[1] for res in result["OCR"]]
+                ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)
+
+            db.insert(
+                result["hash"],
+                rel_path,
+                classification,
+                classification_confidence_avg,
+                object,
+                object_confidence_avg,
+                OCR,
+                ocr_confidence_avg,
+            )
+        self.finished.emit()

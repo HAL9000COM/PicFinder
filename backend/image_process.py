@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import io
+from multiprocessing import Pool
 from pathlib import Path
 
 import xxhash
@@ -9,8 +10,8 @@ from PIL import Image
 
 def classify(image: Image.Image, model: str, threshold: float = 0.7):
     if model == "YOLOv8":
-        from .resources.label_list import image_net
-        from .yolo.YOLO import YOLOv8_cls
+        from backend.resources.label_list import image_net
+        from backend.yolo.YOLO import YOLOv8_cls
 
         YOLOv8_cls_path = (
             Path(__file__).resolve().parent.parent / "models" / "YOLOv8-cls.onnx"
@@ -36,8 +37,8 @@ def object_detection(
     iou_threshold: float = 0.5,
 ):
     if model == "YOLOv8":
-        from .resources.label_list import coco
-        from .yolo import YOLOv8
+        from backend.resources.label_list import coco
+        from backend.yolo import YOLOv8
 
         YOLOv8_COCO_path = (
             Path(__file__).resolve().parent.parent / "models" / "YOLOv8.onnx"
@@ -59,8 +60,8 @@ def object_detection(
         return result
 
     elif model == "YOLOv8-oiv7":
-        from .resources.label_list import open_images_v7
-        from .yolo import YOLOv8
+        from backend.resources.label_list import open_images_v7
+        from backend.yolo import YOLOv8
 
         YOLOv8_OIV7_path = (
             Path(__file__).resolve().parent.parent / "models" / "YOLOv8-oiv7.onnx"
@@ -84,7 +85,7 @@ def object_detection(
 
 def OCR(img_file, model: str):
     if model == "RapidOCR":
-        from .rapidOCR import process
+        from backend.rapidOCR import process
 
         result = process(img_file)
 
@@ -99,16 +100,15 @@ def OCR(img_file, model: str):
 
 
 # %%
-def read_img(img_path, **kwargs):
-
-    classification_model = kwargs.get("classification_model", "YOLOv8")
-    classification_threshold = kwargs.get("classification_threshold", 0.7)
-
-    object_detection_model = kwargs.get("object_detection_model", "YOLOv8")
-    object_detection_conf_threshold = kwargs.get("object_detection_conf_threshold", 0.7)
-    object_detection_iou_threshold = kwargs.get("object_detection_iou_threshold", 0.5)
-
-    OCR_model = kwargs.get("OCR_model", "RapidOCR")
+def read_img(
+    img_path: Path,
+    classification_model="YOLOv8",
+    classification_threshold=0.7,
+    object_detection_model="YOLOv8",
+    object_detection_conf_threshold=0.7,
+    object_detection_iou_threshold=0.5,
+    OCR_model="RapidOCR",
+):
 
     with open(img_path, "rb") as file:
         img_file = file.read()
@@ -121,6 +121,7 @@ def read_img(img_path, **kwargs):
         return {"error": str(e)}
 
     res_dict = {}
+    res_dict["path"] = img_path
     res_dict["hash"] = img_hash
 
     cls_res = classify(img, classification_model, classification_threshold)
@@ -138,3 +139,13 @@ def read_img(img_path, **kwargs):
     res_dict["OCR"] = OCR_res
 
     return res_dict
+
+
+def read_folder(folder_path: Path, **kwargs):
+    # list all files in the folder and subfolders
+    file_list = folder_path.rglob("*")
+    input_list = [[file, kwargs] for file in file_list if file.is_file()]
+    p = Pool()
+    res = p.starmap(read_img, input_list)
+    p.close()
+    return res
