@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-import traceback
 from multiprocessing import freeze_support
 
 from PySide6.QtWidgets import QApplication
@@ -19,5 +18,4 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     code = app.exec()
-    traceback.print_exc()
     os._exit(code)
