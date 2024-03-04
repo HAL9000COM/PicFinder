@@ -11,12 +11,13 @@ from PIL import Image
 def classify(image: Image.Image, model: str, threshold: float = 0.7):
     if model == "YOLOv8":
         from backend.resources.label_list import image_net
-        from backend.yolo.YOLO import YOLOv8_cls
+        from backend.yolo.YOLO import YOLOv8Cls
 
         YOLOv8_cls_path = (
             Path(__file__).resolve().parent.parent / "models" / "YOLOv8-cls.onnx"
         )
-        class_ids, confidence = YOLOv8_cls(YOLOv8_cls_path, conf_thres=threshold)(image)
+
+        class_ids, confidence = YOLOv8Cls(YOLOv8_cls_path, conf_thres=threshold)(image)
         if len(class_ids) == 0:
             return None
 
