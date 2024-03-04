@@ -71,6 +71,9 @@ class YOLOv8:
 
         # Scale input pixel values to 0 to 1
         input_img = np.array(input_img) / 255.0
+        # Convert the image to RGB if it is in grayscale
+        if len(input_img.shape) == 2:
+            input_img = np.stack((input_img,) * 3, axis=-1)
         input_img = input_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
@@ -204,6 +207,9 @@ class YOLOv8_cls:
 
         # Scale input pixel values to 0 to 1
         input_img = np.array(input_img) / 255.0
+        # Convert the image to RGB if it is in grayscale
+        if len(input_img.shape) == 2:
+            input_img = np.stack((input_img,) * 3, axis=-1)
         input_img = input_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
