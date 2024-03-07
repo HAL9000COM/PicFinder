@@ -140,13 +140,3 @@ def read_img(
     res_dict["OCR"] = OCR_res
 
     return res_dict
-
-
-def read_folder(folder_path: Path, **kwargs):
-    # list all files in the folder and subfolders
-    file_list = folder_path.rglob("*")
-    input_list = [[file, kwargs] for file in file_list if file.is_file()]
-    p = Pool()
-    res = p.starmap(read_img, input_list)
-    p.close()
-    return res

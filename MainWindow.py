@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from multiprocessing import Pool
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
 from backend.db_ops import DB
-from backend.image_process import read_folder
+from backend.image_process import read_img
 from MainWindow_ui import Ui_MainWindow
 
 
@@ -70,10 +71,22 @@ class IndexWorker(QObject):
         super(IndexWorker, self).__init__()
         self.folder = folder_path
 
+    def read_folder(self, folder_path: Path, **kwargs):
+        # list all files in the folder and subfolders
+        file_list = folder_path.rglob("*")
+        input_list = [[file, kwargs] for file in file_list if file.is_file()]
+        # p = Pool()
+        # res = p.starmap(read_img, input_list)
+        # p.close()
+        with Pool() as p:
+            res = p.starmap(read_img, input_list)
+
+        return res
+
     def run(self):
         db = DB(self.folder / "PicFinder.db")
 
-        results = read_folder(self.folder)
+        results = self.read_folder(self.folder)
         for result in results:
             if "error" in result.keys():
                 continue
