@@ -106,7 +106,7 @@ class IndexWorker(QObject):
                     res[1] for res in result["classification"]
                 ]
                 classification_confidence_avg = sum(
-                    classification_confidence_list
+                    classification_confidence_list  # type: ignore
                 ) / len(classification_confidence_list)
 
             if result["object_detection"] is None:
@@ -115,9 +115,9 @@ class IndexWorker(QObject):
             else:
                 object = " ".join([res[0] for res in result["object_detection"]])
                 object_confidence_list = [res[1] for res in result["object_detection"]]
-                object_confidence_avg = sum(object_confidence_list) / len(
-                    object_confidence_list
-                )
+                object_confidence_avg = sum(
+                    object_confidence_list  # type: ignore
+                ) / len(object_confidence_list)
 
             if result["OCR"] is None:
                 OCR = ""
@@ -125,7 +125,7 @@ class IndexWorker(QObject):
             else:
                 OCR = " ".join([res[0] for res in result["OCR"]])
                 ocr_confidence_list = [res[1] for res in result["OCR"]]
-                ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)
+                ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)  # type: ignore
 
             db.insert(
                 result["hash"],
