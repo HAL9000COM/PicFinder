@@ -122,8 +122,8 @@ def read_img(
         return {"error": str(e)}
 
     res_dict = {}
-    res_dict["path"] = img_path
     res_dict["hash"] = img_hash
+    res_dict["path"] = img_path.as_posix()
 
     cls_res = classify(img, classification_model, classification_threshold)
     res_dict["classification"] = cls_res
