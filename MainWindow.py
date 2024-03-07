@@ -4,10 +4,11 @@ from multiprocessing import Pool
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
+from PySide6.QtWidgets import QFileDialog, QMainWindow
+from tqdm import tqdm
 
 from backend.db_ops import DB
-from backend.image_process import read_img
+from backend.image_process import read_img_warper
 from MainWindow_ui import Ui_MainWindow
 
 
@@ -78,13 +79,11 @@ class IndexWorker(QObject):
 
     def read_folder(self, folder_path: Path, **kwargs):
         # list all files in the folder and subfolders
-        file_list = folder_path.rglob("*")
-        input_list = [[file, kwargs] for file in file_list if file.is_file()]
-        # p = Pool()
-        # res = p.starmap(read_img, input_list)
-        # p.close()
+        file_list = [file for file in folder_path.rglob("*") if file.is_file()]
+        input_list = [(file, kwargs) for file in file_list]
+
         with Pool() as p:
-            res = p.starmap(read_img, input_list)
+            res = list(tqdm(p.imap(read_img_warper, input_list), total=len(file_list)))
 
         return res
 

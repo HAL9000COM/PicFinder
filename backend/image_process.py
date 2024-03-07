@@ -140,3 +140,8 @@ def read_img(
     res_dict["OCR"] = OCR_res
 
     return res_dict
+
+
+def read_img_warper(args: tuple):
+    path, kwargs = args
+    return read_img(path, **kwargs)
