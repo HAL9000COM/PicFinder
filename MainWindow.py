@@ -33,6 +33,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.index_worker.moveToThread(self.index_worker_thread)
             self.index_worker_thread.started.connect(self.index_worker.run)
             self.index_worker.finished.connect(self.index_finished)
+            self.index_worker.finished.connect(self.index_worker_thread.quit)
+            self.index_worker.finished.connect(self.index_worker.deleteLater)
+            self.index_worker_thread.finished.connect(
+                self.index_worker_thread.deleteLater
+            )
             # self.index_worker.progress.connect(self.progressBar.setValue)
             self.index_worker_thread.start()
             self.statusbar.showMessage("Indexing...", 3000)
