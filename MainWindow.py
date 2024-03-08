@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from multiprocessing import Pool
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtWidgets import QFileDialog, QMainWindow
-from tqdm import tqdm
 
 from backend.db_ops import DB
 from backend.image_process import read_img_warper
@@ -39,12 +39,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.index_worker_thread.finished.connect(
                 self.index_worker_thread.deleteLater
             )
-            # self.index_worker.progress.connect(self.progressBar.setValue)
+            self.index_worker.progress.connect(self.index_progress)
             self.index_worker_thread.start()
             self.statusbar.showMessage("Indexing...", 3000)
 
         else:
             self.statusbar.showMessage("Invalid Folder Path")
+
+    def index_progress(self, value):
+        self.statusbar.showMessage(f"Indexing... {value}%")
 
     def index_finished(self):
         self.statusbar.showMessage("Indexing Finished", 3000)
@@ -83,12 +86,18 @@ class IndexWorker(QObject):
         input_list = [(file, kwargs) for file in file_list]
 
         with Pool() as p:
-            res = list(tqdm(p.imap(read_img_warper, input_list), total=len(file_list)))
-
-        return res
+            total_files = len(file_list)
+            for i, result in enumerate(
+                p.imap(read_img_warper, input_list, chunksize=1)
+            ):
+                self.progress.emit(int((i + 1) / total_files * 100))
+                yield result
 
     def run(self):
-        db = DB(self.folder / "PicFinder.db")
+        db_path = self.folder / "PicFinder.db"
+        if db_path.exists():
+            db_path.unlink()
+        db = DB(db_path)
 
         results = self.read_folder(self.folder)
         for result in results:
