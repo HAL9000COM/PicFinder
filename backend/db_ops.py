@@ -62,7 +62,7 @@ class DB:
         )
         dict_path = Path(__file__).resolve().parent / "libsimple-windows-x64" / "dict"
 
-        self.conn = sqlite3.connect(path)
+        self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.enable_load_extension(True)
         self.conn.load_extension(extention_path.as_posix())
         self.conn.execute(TABLE_SQL)

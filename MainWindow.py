@@ -19,6 +19,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setAcceptDrops(True)
         self.pushButton_folder_browse.clicked.connect(self.browse_folder)
         self.pushButton_index.clicked.connect(self.index_folder)
+        self.pushButton_search.clicked.connect(self.search)
+        self.lineEdit_folder.textChanged.connect(self.lineEdit_folder_textChanged)
+
+    def lineEdit_folder_textChanged(self, text):
+        if text:
+            self.pushButton_index.setEnabled(True)
+        else:
+            self.pushButton_index.setEnabled(False)
+        self.folder_path = Path(text)
 
     def browse_folder(self):
         path = QFileDialog.getExistingDirectory(self, "Select Directory")
@@ -26,7 +35,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.lineEdit_folder.setText(path)
 
     def index_folder(self):
-        self.folder_path = Path(self.lineEdit_folder.text())
         if self.folder_path.exists() and self.folder_path.is_dir():
 
             self.index_worker = IndexWorker(self.folder_path)
@@ -51,6 +59,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def index_finished(self):
         self.statusbar.showMessage("Indexing Finished", 3000)
+
+    def search(self):
+        query = self.lineEdit_search.text()
+        if query:
+            db_path = self.folder_path / "PicFinder.db"
+            if db_path.exists():
+                self.search_worker = SearchWorker(db_path, query)
+                self.search_worker_thread = QThread()
+                self.search_worker.moveToThread(self.search_worker_thread)
+                self.search_worker_thread.started.connect(self.search_worker.run)
+                self.search_worker.finished.connect(self.search_finished)
+                self.search_worker.finished.connect(self.search_worker_thread.quit)
+                self.search_worker.finished.connect(self.search_worker.deleteLater)
+                self.search_worker_thread.finished.connect(
+                    self.search_worker_thread.deleteLater
+                )
+                self.search_worker.result.connect(self.search_result)
+                self.search_worker_thread.start()
+                self.statusbar.showMessage("Searching...", 3000)
+            else:
+                self.statusbar.showMessage("Database not found", 3000)
+
+    def search_finished(self):
+        self.statusbar.showMessage("Search Finished", 3000)
+
+    def search_result(self, result):
+        # self.listWidget_search_result.clear()
+        # for file in result:
+        #     self.listWidget_search_result.addItem(file[1])
+        logging.debug(result)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -147,3 +185,19 @@ class IndexWorker(QObject):
                 ocr_confidence_avg,
             )
         self.finished.emit()
+
+
+class SearchWorker(QObject):
+    finished = Signal()
+    progress = Signal(int)
+    result = Signal(list)
+
+    def __init__(self, db_path: Path, query: str):
+        super(SearchWorker, self).__init__()
+        self.db = DB(db_path)
+        self.query = query
+
+    def run(self):
+        result = self.db.search(self.query)
+        self.finished.emit()
+        self.result.emit(result)
