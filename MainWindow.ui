@@ -68,7 +68,13 @@
      </layout>
     </item>
     <item>
-     <widget class="QWidget" name="widget" native="true"/>
+     <widget class="QWidget" name="widget" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QListWidget" name="listWidget_search_result"/>
+       </item>
+      </layout>
+     </widget>
     </item>
    </layout>
   </widget>
