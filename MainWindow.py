@@ -135,10 +135,13 @@ class IndexWorker(QObject):
         db_path = self.folder / "PicFinder.db"
         if db_path.exists():
             db_path.unlink()
-        db = DB(db_path)
 
         results = self.read_folder(self.folder)
+
+        db = DB(db_path)
+
         for result in results:
+            logging.debug(result)
             if "error" in result.keys():
                 continue
 
