@@ -2,6 +2,7 @@
 
 import io
 import logging
+import sys
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -14,9 +15,7 @@ def classify(image: Image.Image, model: str, threshold: float = 0.7):
         from backend.resources.label_list import image_net
         from backend.yolo.YOLO import YOLOv8Cls
 
-        YOLOv8_cls_path = (
-            Path(__file__).resolve().parent.parent / "models" / "YOLOv8-cls.onnx"
-        )
+        YOLOv8_cls_path = Path(sys.argv[0]).parent / "models" / "YOLOv8-cls.onnx"
 
         class_ids, confidence = YOLOv8Cls(YOLOv8_cls_path, conf_thres=threshold)(image)
         if len(class_ids) == 0:
@@ -42,9 +41,7 @@ def object_detection(
         from backend.resources.label_list import coco
         from backend.yolo import YOLOv8
 
-        YOLOv8_COCO_path = (
-            Path(__file__).resolve().parent.parent / "models" / "YOLOv8.onnx"
-        )
+        YOLOv8_COCO_path = Path(sys.argv[0]).parent / "models" / "YOLOv8.onnx"
 
         _, scores, class_ids = YOLOv8(YOLOv8_COCO_path, conf_threshold, iou_threshold)(
             image
@@ -65,9 +62,7 @@ def object_detection(
         from backend.resources.label_list import open_images_v7
         from backend.yolo import YOLOv8
 
-        YOLOv8_OIV7_path = (
-            Path(__file__).resolve().parent.parent / "models" / "YOLOv8-oiv7.onnx"
-        )
+        YOLOv8_OIV7_path = Path(sys.argv[0]).parent / "models" / "YOLOv8-oiv7.onnx"
         _, scores, class_ids = YOLOv8(YOLOv8_OIV7_path, conf_threshold, iou_threshold)(
             image
         )

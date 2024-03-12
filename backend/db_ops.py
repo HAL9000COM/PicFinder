@@ -1,5 +1,6 @@
 # %%
 import sqlite3
+import sys
 from pathlib import Path
 
 TABLE_SQL = """
@@ -58,9 +59,14 @@ class DB:
     def __init__(self, path, jieba=False):
 
         extention_path = (
-            Path(__file__).resolve().parent / "libsimple-windows-x64" / "simple"
+            Path(sys.argv[0]).parent / "backend" / "libsimple-windows-x64" / "simple"
         )
-        dict_path = Path(__file__).resolve().parent / "libsimple-windows-x64" / "dict"
+        dict_path = (
+            Path(sys.argv[0]).parent.parent
+            / "backend"
+            / "libsimple-windows-x64"
+            / "dict"
+        )
 
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.enable_load_extension(True)
