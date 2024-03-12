@@ -184,6 +184,7 @@ class IndexWorker(QObject):
                 OCR,
                 ocr_confidence_avg,
             )
+        db.close()
         self.finished.emit()
 
 
@@ -199,5 +200,6 @@ class SearchWorker(QObject):
 
     def run(self):
         result = self.db.search(self.query)
+        self.db.close()
         self.finished.emit()
         self.result.emit(result)
