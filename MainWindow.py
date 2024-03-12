@@ -244,63 +244,71 @@ class IndexWorker(QObject):
                 yield result
 
     def run(self):
-        db_path = self.folder / "PicFinder.db"
-        if db_path.exists():
-            db_path.unlink()
+        try:
+            db_path = self.folder / "PicFinder.db"
+            if db_path.exists():
+                db_path.unlink()
 
-        results = self.read_folder(self.folder)
+            results = self.read_folder(self.folder)
 
-        db = DB(db_path)
+            db = DB(db_path)
 
-        for result in results:
-            logging.debug(result)
-            if "error" in result.keys():
-                continue
+            for result in results:
+                logging.debug(result)
+                if "error" in result.keys():
+                    continue
 
-            rel_path = Path(result["path"]).relative_to(self.folder).as_posix()
+                rel_path = Path(result["path"]).relative_to(self.folder).as_posix()
 
-            if result["classification"] is None:
-                classification = ""
-                classification_confidence_avg = 0
-            else:
-                classification = " ".join([res[0] for res in result["classification"]])
-                classification_confidence_list = [
-                    res[1] for res in result["classification"]
-                ]
-                classification_confidence_avg = sum(
-                    classification_confidence_list  # type: ignore
-                ) / len(classification_confidence_list)
+                if result["classification"] is None:
+                    classification = ""
+                    classification_confidence_avg = 0
+                else:
+                    classification = " ".join(
+                        [res[0] for res in result["classification"]]
+                    )
+                    classification_confidence_list = [
+                        res[1] for res in result["classification"]
+                    ]
+                    classification_confidence_avg = sum(
+                        classification_confidence_list  # type: ignore
+                    ) / len(classification_confidence_list)
 
-            if result["object_detection"] is None:
-                object = ""
-                object_confidence_avg = 0
-            else:
-                object = " ".join([res[0] for res in result["object_detection"]])
-                object_confidence_list = [res[1] for res in result["object_detection"]]
-                object_confidence_avg = sum(
-                    object_confidence_list  # type: ignore
-                ) / len(object_confidence_list)
+                if result["object_detection"] is None:
+                    object = ""
+                    object_confidence_avg = 0
+                else:
+                    object = " ".join([res[0] for res in result["object_detection"]])
+                    object_confidence_list = [
+                        res[1] for res in result["object_detection"]
+                    ]
+                    object_confidence_avg = sum(
+                        object_confidence_list  # type: ignore
+                    ) / len(object_confidence_list)
 
-            if result["OCR"] is None:
-                OCR = ""
-                ocr_confidence_avg = 0
-            else:
-                OCR = " ".join([res[0] for res in result["OCR"]])
-                ocr_confidence_list = [res[1] for res in result["OCR"]]
-                ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)  # type: ignore
+                if result["OCR"] is None:
+                    OCR = ""
+                    ocr_confidence_avg = 0
+                else:
+                    OCR = " ".join([res[0] for res in result["OCR"]])
+                    ocr_confidence_list = [res[1] for res in result["OCR"]]
+                    ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)  # type: ignore
 
-            db.insert(
-                result["hash"],
-                rel_path,
-                classification,
-                classification_confidence_avg,
-                object,
-                object_confidence_avg,
-                OCR,
-                ocr_confidence_avg,
-            )
-        db.close()
-        self.finished.emit()
+                db.insert(
+                    result["hash"],
+                    rel_path,
+                    classification,
+                    classification_confidence_avg,
+                    object,
+                    object_confidence_avg,
+                    OCR,
+                    ocr_confidence_avg,
+                )
+            db.close()
+            self.finished.emit()
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            self.finished.emit()
 
 
 class SearchWorker(QObject):
@@ -314,7 +322,11 @@ class SearchWorker(QObject):
         self.query = query
 
     def run(self):
-        result = self.db.search(self.query)
-        self.db.close()
-        self.finished.emit()
-        self.result.emit(result)
+        try:
+            result = self.db.search(self.query)
+            self.db.close()
+            self.result.emit(result)
+            self.finished.emit()
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            self.finished.emit()
