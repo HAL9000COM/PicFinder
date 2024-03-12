@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import sys
 from multiprocessing import Pool
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QSize, Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QIcon
-from PySide6.QtWidgets import QFileDialog, QListWidget, QListWidgetItem, QMainWindow
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QMessageBox,
+)
 
 from backend.db_ops import DB
 from backend.image_process import read_img_warper
@@ -53,8 +60,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listWidget_search_result.setWrapping(True)
         self.listWidget_search_result.setGridSize(QSize(320, 320))
         self.listWidget_search_result.setSpacing(20)
-        self.listWidget_search_result.setUniformItemSizes(True)
-        self.listWidget_search_result.setTextElideMode(Qt.ElideNone)
+        self.listWidget_search_result.setUniformItemSizes(False)
+        self.listWidget_search_result.setTextElideMode(Qt.ElideMiddle)
         self.listWidget_search_result.setWordWrap(True)
         self.listWidget_search_result.itemDoubleClicked.connect(self.open_file)
 
@@ -109,10 +116,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.lineEdit_folder.setText(path)
 
     def index_folder(self):
+        try:
+            if self.index_worker_thread.isRunning():
+                logging.error("Indexing already in progress")
+                return
+        except:
+            pass
+        try:
+            if self.search_worker_thread.isRunning():
+                logging.error("Search in progress, please wait")
+                return
+        except:
+            pass
         if self.folder_path.exists() and self.folder_path.is_dir():
 
-            self.pushButton_index.setEnabled(False)
-            self.pushButton_search.setEnabled(False)
             self.listWidget_search_result.clear()
 
             self.index_worker = IndexWorker(self.folder_path)
@@ -137,13 +154,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def index_finished(self):
         self.statusbar.showMessage("Indexing Finished")
         self.db_exists_check()
-        self.pushButton_index.setEnabled(True)
 
     def search(self):
+        try:
+            if self.search_worker_thread.isRunning():
+                logging.error("Search already in progress")
+                return
+        except:
+            pass
+        try:
+            if self.index_worker_thread.isRunning():
+                logging.error("Indexing in progress, please wait")
+                return
+        except:
+            pass
         query = self.lineEdit_search.text()
         if query:
-            if self.db_exists_check() and self.pushButton_search.isEnabled():
-                self.pushButton_search.setEnabled(False)
+            if self.db_exists_check():
                 self.search_worker = SearchWorker(self.db_path, query)
                 self.search_worker_thread = QThread()
                 self.search_worker.moveToThread(self.search_worker_thread)
@@ -162,13 +189,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def search_finished(self):
         self.statusbar.showMessage("Search Finished")
-        self.pushButton_search.setEnabled(True)
 
     def search_result(self, result):
-        # self.listWidget_search_result.clear()
-        # for file in result:
-        #     self.listWidget_search_result.addItem(file[1])
-        logging.debug(result)
         self.populate_list(result)
 
     def populate_list(self, result):
