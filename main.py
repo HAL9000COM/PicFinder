@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
-from PySide6.QtWidgets import QApplication, QMessageBox
-from PySide6.QtCore import QTranslator
-from MainWindow import MainWindow
+
 import logging
+import os
+import sys
 from multiprocessing import freeze_support
 
-import traceback
-import importlib.resources
+from PySide6.QtWidgets import QApplication
 
+from MainWindow import MainWindow
 
 if __name__ == "__main__":
     freeze_support()
@@ -20,5 +18,4 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     code = app.exec()
-    traceback.print_exc()
     os._exit(code)

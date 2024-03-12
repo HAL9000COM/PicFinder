@@ -1,12 +1,63 @@
+# -*- coding: utf-8 -*-
+
 import time
-import cv2
+
 import numpy as np
 import onnxruntime
+from PIL import Image
 
-from yolo.utils import xywh2xyxy, multiclass_nms
+from .utils import multiclass_nms, xywh2xyxy
 
 
-class YOLOv8:
+class YOLOv8Base:
+
+    def initialize_model(self, path):
+        self.session = onnxruntime.InferenceSession(
+            path, providers=onnxruntime.get_available_providers()
+        )
+        # Get model info
+        self.get_input_details()
+        self.get_output_details()
+
+    def get_input_details(self):
+        model_inputs = self.session.get_inputs()
+        self.input_names = [model_inputs[i].name for i in range(len(model_inputs))]
+
+        self.input_shape = model_inputs[0].shape
+        self.input_height = self.input_shape[2]
+        self.input_width = self.input_shape[3]
+
+    def get_output_details(self):
+        model_outputs = self.session.get_outputs()
+        self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
+
+    def prepare_input(self, image: Image.Image):
+        self.img_height, self.img_width = image.size
+
+        # Resize input image
+        input_img = image.resize((self.input_width, self.input_height))
+
+        # Scale input pixel values to 0 to 1
+        input_img = np.array(input_img) / 255.0
+        # Convert the image to RGB if it is in grayscale
+        if len(input_img.shape) == 2:
+            input_img = np.stack((input_img,) * 3, axis=-1)
+        # Remove the alpha channel if it exists
+        elif input_img.shape[2] == 4:
+            input_img = input_img[:, :, :3]
+        input_img = input_img.transpose(2, 0, 1)
+        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
+
+        return input_tensor
+
+    def inference(self, input_tensor):
+        outputs = self.session.run(
+            self.output_names, {self.input_names[0]: input_tensor}
+        )
+        return outputs
+
+
+class YOLOv8(YOLOv8Base):
     """
     YOLOv8 is a class that represents the YOLOv8 object detection model.
     Pre-trained on the COCO or the Open Images V7 dataset.
@@ -15,6 +66,10 @@ class YOLOv8:
         path (str): The path to the ONNX model file.
         conf_thres (float, optional): The confidence threshold for object detection. Defaults to 0.7.
         iou_thres (float, optional): The IOU threshold for non-maxima suppression. Defaults to 0.5.
+    Returns:
+        boxes (numpy.ndarray): The bounding boxes of the detected objects.
+        scores (numpy.ndarray): The confidence scores of the detected objects.
+        class_ids (numpy.ndarray): The predicted class IDs of the detected objects.
     """
 
     def __init__(self, path, conf_thres=0.7, iou_thres=0.5):
@@ -27,15 +82,18 @@ class YOLOv8:
     def __call__(self, image):
         return self.detect_objects(image)
 
-    def initialize_model(self, path):
-        self.session = onnxruntime.InferenceSession(
-            path, providers=onnxruntime.get_available_providers()
-        )
-        # Get model info
-        self.get_input_details()
-        self.get_output_details()
+    def detect_objects(self, image: Image.Image):
+        """
+        Detects objects in the given image using the YOLOv8 model.
 
-    def detect_objects(self, image):
+        Args:
+            image (PIL.Image.Image): The input image.
+
+        Returns:
+            boxes (numpy.ndarray): The bounding boxes of the detected objects.
+            scores (numpy.ndarray): The confidence scores of the detected objects.
+            class_ids (numpy.ndarray): The predicted class IDs of the detected objects.
+        """
         input_tensor = self.prepare_input(image)
 
         # Perform inference on the image
@@ -44,30 +102,6 @@ class YOLOv8:
         self.boxes, self.scores, self.class_ids = self.process_output(outputs)
 
         return self.boxes, self.scores, self.class_ids
-
-    def prepare_input(self, image):
-        self.img_height, self.img_width = image.shape[:2]
-
-        input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        # Resize input image
-        input_img = cv2.resize(input_img, (self.input_width, self.input_height))
-
-        # Scale input pixel values to 0 to 1
-        input_img = input_img / 255.0
-        input_img = input_img.transpose(2, 0, 1)
-        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
-
-        return input_tensor
-
-    def inference(self, input_tensor):
-        start = time.perf_counter()
-        outputs = self.session.run(
-            self.output_names, {self.input_names[0]: input_tensor}
-        )
-
-        # print(f"Inference time: {(time.perf_counter() - start)*1000:.2f} ms")
-        return outputs
 
     def process_output(self, output):
         predictions = np.squeeze(output[0]).T
@@ -116,27 +150,18 @@ class YOLOv8:
         )
         return boxes
 
-    def get_input_details(self):
-        model_inputs = self.session.get_inputs()
-        self.input_names = [model_inputs[i].name for i in range(len(model_inputs))]
 
-        self.input_shape = model_inputs[0].shape
-        self.input_height = self.input_shape[2]
-        self.input_width = self.input_shape[3]
-
-    def get_output_details(self):
-        model_outputs = self.session.get_outputs()
-        self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
-
-
-class YOLOv8_cls:
+class YOLOv8Cls(YOLOv8Base):
     """
-    YOLOv8_cls is a class that represents the YOLOv8-cls classification model.
+    YOLOv8Cls is a class that represents the YOLOv8-cls classification model.
     Pre-trained on the ImageNet dataset.
 
     Args:
         path (str): The path to the ONNX model file.
         conf_thres (float, optional): The confidence threshold for classification. Defaults to 0.7.
+    Returns:
+        class_ids (numpy.ndarray): The predicted class IDs of the detected objects.
+        confidence (numpy.ndarray): The confidence scores of the detected objects.
     """
 
     def __init__(self, path, conf_thres=0.7):
@@ -148,56 +173,25 @@ class YOLOv8_cls:
     def __call__(self, image):
         return self.predict(image)
 
-    def initialize_model(self, path):
-
-        self.session = onnxruntime.InferenceSession(
-            path, providers=onnxruntime.get_available_providers()
-        )
-        # Get model info
-        self.get_input_details()
-        self.get_output_details()
-
-    def predict(self, image):
+    def predict(self, image: Image.Image):
         """
         Detects objects in the given image using the YOLOv8 model.
 
         Args:
-            image (numpy.ndarray): The input image.
+            image (PIL.Image.Image): The input image.
 
         Returns:
-            numpy.ndarray: The predicted class IDs of the detected objects.
-
+        class_ids: numpy.ndarray: The predicted class IDs of the detected objects.
+        confidence: numpy.ndarray: The confidence scores of the detected objects.
         """
         input_tensor = self.prepare_input(image)
 
         # Perform inference on the image
         outputs = self.inference(input_tensor)
 
-        class_ids, predictions = self.process_output(outputs)
+        class_ids, confidence = self.process_output(outputs)
 
-        return class_ids, predictions
-
-    def prepare_input(self, image):
-
-        self.img_height, self.img_width = image.shape[:2]
-
-        input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        # Resize input image
-        input_img = cv2.resize(input_img, (self.input_width, self.input_height))
-
-        # Scale input pixel values to 0 to 1
-        input_img = input_img / 255.0
-        input_img = input_img.transpose(2, 0, 1)
-        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
-
-        return input_tensor
-
-    def inference(self, input_tensor):
-        outputs = self.session.run(
-            self.output_names, {self.input_names[0]: input_tensor}
-        )
-        return outputs
+        return class_ids, confidence
 
     def process_output(self, output):
         """
@@ -214,17 +208,6 @@ class YOLOv8_cls:
 
         # Get the classes with the confidence>threshold
         class_ids = np.where(predictions > self.conf_threshold)
+        class_ids = class_ids[0]
 
         return class_ids, predictions[class_ids]
-
-    def get_input_details(self):
-        model_inputs = self.session.get_inputs()
-        self.input_names = [model_inputs[i].name for i in range(len(model_inputs))]
-
-        self.input_shape = model_inputs[0].shape
-        self.input_height = self.input_shape[2]
-        self.input_width = self.input_shape[3]
-
-    def get_output_details(self):
-        model_outputs = self.session.get_outputs()
-        self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
