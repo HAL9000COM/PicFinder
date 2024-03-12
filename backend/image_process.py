@@ -9,13 +9,17 @@ from pathlib import Path
 import xxhash
 from PIL import Image
 
+from backend.rapidOCR import process as rapidOCRprocess
+from backend.resources.label_list import coco, open_images_v7
+from backend.yolo import YOLOv8
+
 
 def classify(image: Image.Image, model: str, threshold: float = 0.7):
-    if model == "YOLOv8":
+    if model == "yolov8":
         from backend.resources.label_list import image_net
         from backend.yolo.YOLO import YOLOv8Cls
 
-        YOLOv8_cls_path = Path(sys.argv[0]).parent / "models" / "YOLOv8-cls.onnx"
+        YOLOv8_cls_path = Path(sys.argv[0]).parent / "models" / "yolov8-cls.onnx"
 
         class_ids, confidence = YOLOv8Cls(YOLOv8_cls_path, conf_thres=threshold)(image)
         if len(class_ids) == 0:
@@ -37,11 +41,9 @@ def object_detection(
     conf_threshold: float = 0.7,
     iou_threshold: float = 0.5,
 ):
-    if model == "YOLOv8":
-        from backend.resources.label_list import coco
-        from backend.yolo import YOLOv8
+    if model == "yolov8":
 
-        YOLOv8_COCO_path = Path(sys.argv[0]).parent / "models" / "YOLOv8.onnx"
+        YOLOv8_COCO_path = Path(sys.argv[0]).parent / "models" / "yolov8.onnx"
 
         _, scores, class_ids = YOLOv8(YOLOv8_COCO_path, conf_threshold, iou_threshold)(
             image
@@ -58,11 +60,9 @@ def object_detection(
 
         return result
 
-    elif model == "YOLOv8-oiv7":
-        from backend.resources.label_list import open_images_v7
-        from backend.yolo import YOLOv8
+    elif model == "yolov8-oiv7":
 
-        YOLOv8_OIV7_path = Path(sys.argv[0]).parent / "models" / "YOLOv8-oiv7.onnx"
+        YOLOv8_OIV7_path = Path(sys.argv[0]).parent / "models" / "yolov8-oiv7.onnx"
         _, scores, class_ids = YOLOv8(YOLOv8_OIV7_path, conf_threshold, iou_threshold)(
             image
         )
@@ -82,9 +82,8 @@ def object_detection(
 
 def OCR(img_file, model: str):
     if model == "RapidOCR":
-        from backend.rapidOCR import process
 
-        result = process(img_file)
+        result = rapidOCRprocess(img_file)
 
         if result is None or len(result) == 0:
             return None
@@ -99,9 +98,9 @@ def OCR(img_file, model: str):
 # %%
 def read_img(
     img_path: Path,
-    classification_model="YOLOv8",
+    classification_model="yolov8",
     classification_threshold=0.7,
-    object_detection_model="YOLOv8",
+    object_detection_model="yolov8",
     object_detection_conf_threshold=0.7,
     object_detection_iou_threshold=0.5,
     OCR_model="RapidOCR",
