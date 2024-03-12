@@ -13,6 +13,24 @@ from backend.image_process import read_img_warper
 from MainWindow_ui import Ui_MainWindow
 
 
+class QLogSignal(QObject):
+    log = Signal(str)
+
+
+class QLogHandler(logging.Handler):
+    def __init__(self, emitter):
+        super().__init__()
+        self._emitter = emitter
+
+    @property
+    def emitter(self):
+        return self._emitter
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.emitter.log.emit(msg)
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -44,6 +62,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.pushButton_index.setEnabled(False)
         self.pushButton_search.setEnabled(False)
+
+        q_log_signal = QLogSignal()
+
+        h = QLogHandler(q_log_signal)
+        # set the logger level
+        h.setLevel(logging.ERROR)
+        logging.getLogger().addHandler(h)
+        q_log_signal.log.connect(self.error_pop_up)
+
+    def error_pop_up(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(message)
+        msg.setWindowTitle("Error")
+        msg.exec_()
 
     def lineEdit_folder_textChanged(self, text):
         if text:
