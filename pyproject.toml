@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "picfinder"
 version = "0.1.0"
-description = ""
+description = "A simple windows application to search for images in a directory."
 authors = ["HAL9000COM <f1226942353@icloud.com>"]
 readme = "README.md"
 
@@ -15,6 +15,7 @@ xxhash = "^3.4.1"
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
 notebook = "^6.5.3"
+nuitka = "^2.1.1"
 
 [build-system]
 requires = ["poetry-core"]
