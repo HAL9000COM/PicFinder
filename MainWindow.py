@@ -4,8 +4,9 @@ import logging
 from multiprocessing import Pool
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QThread, Signal
-from PySide6.QtWidgets import QFileDialog, QMainWindow
+from PySide6.QtCore import QObject, QSize, Qt, QThread, QUrl, Signal
+from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtWidgets import QFileDialog, QListWidget, QListWidgetItem, QMainWindow
 
 from backend.db_ops import DB
 from backend.image_process import read_img_warper
@@ -17,10 +18,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.setAcceptDrops(True)
+
         self.pushButton_folder_browse.clicked.connect(self.browse_folder)
         self.pushButton_index.clicked.connect(self.index_folder)
         self.pushButton_search.clicked.connect(self.search)
+
         self.lineEdit_folder.textChanged.connect(self.lineEdit_folder_textChanged)
+
+        self.lineEdit_search.returnPressed.connect(self.search)
+
+        self.listWidget_search_result.setViewMode(QListWidget.IconMode)
+        self.listWidget_search_result.setIconSize(QSize(300, 300))
+        self.listWidget_search_result.setResizeMode(QListWidget.Adjust)
+        self.listWidget_search_result.setWordWrap(True)
+        self.listWidget_search_result.setFlow(QListWidget.LeftToRight)
+        self.listWidget_search_result.setWrapping(True)
+        self.listWidget_search_result.setGridSize(QSize(320, 320))
+        self.listWidget_search_result.setSpacing(20)
+        self.listWidget_search_result.setUniformItemSizes(True)
+        self.listWidget_search_result.setTextElideMode(Qt.ElideNone)
+        self.listWidget_search_result.setWordWrap(True)
+        self.listWidget_search_result.itemDoubleClicked.connect(self.open_file)
+
+        self.folder_path = Path()
+
+        self.pushButton_index.setEnabled(False)
+        self.pushButton_search.setEnabled(False)
 
     def lineEdit_folder_textChanged(self, text):
         if text:
@@ -28,6 +51,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.pushButton_index.setEnabled(False)
         self.folder_path = Path(text)
+        self.db_path = self.folder_path / "PicFinder.db"
+        self.listWidget_search_result.clear()
+        if self.db_exists_check():
+            self.statusbar.showMessage(
+                f"Folder: {self.folder_path.as_posix()} , Index Found"
+            )
+        else:
+            self.statusbar.showMessage(
+                f"Folder: {self.folder_path.as_posix()} , Index Not Found"
+            )
+
+    def db_exists_check(self):
+        if self.db_path.exists():
+            self.pushButton_search.setEnabled(True)
+            return True
+        else:
+            self.pushButton_search.setEnabled(False)
+            return False
 
     def browse_folder(self):
         path = QFileDialog.getExistingDirectory(self, "Select Directory")
@@ -36,6 +77,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def index_folder(self):
         if self.folder_path.exists() and self.folder_path.is_dir():
+
+            self.pushButton_index.setEnabled(False)
+            self.pushButton_search.setEnabled(False)
+            self.listWidget_search_result.clear()
 
             self.index_worker = IndexWorker(self.folder_path)
             self.index_worker_thread = QThread()
@@ -49,8 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             self.index_worker.progress.connect(self.index_progress)
             self.index_worker_thread.start()
-            self.statusbar.showMessage("Indexing...", 3000)
-
+            self.statusbar.showMessage("Indexing...")
         else:
             self.statusbar.showMessage("Invalid Folder Path")
 
@@ -58,14 +102,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage(f"Indexing... {value}%")
 
     def index_finished(self):
-        self.statusbar.showMessage("Indexing Finished", 3000)
+        self.statusbar.showMessage("Indexing Finished")
+        self.db_exists_check()
+        self.pushButton_index.setEnabled(True)
 
     def search(self):
         query = self.lineEdit_search.text()
         if query:
-            db_path = self.folder_path / "PicFinder.db"
-            if db_path.exists():
-                self.search_worker = SearchWorker(db_path, query)
+            if self.db_exists_check() and self.pushButton_search.isEnabled():
+                self.pushButton_search.setEnabled(False)
+                self.search_worker = SearchWorker(self.db_path, query)
                 self.search_worker_thread = QThread()
                 self.search_worker.moveToThread(self.search_worker_thread)
                 self.search_worker_thread.started.connect(self.search_worker.run)
@@ -77,18 +123,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 )
                 self.search_worker.result.connect(self.search_result)
                 self.search_worker_thread.start()
-                self.statusbar.showMessage("Searching...", 3000)
+                self.statusbar.showMessage("Searching...")
             else:
-                self.statusbar.showMessage("Database not found", 3000)
+                self.statusbar.showMessage("Database not found")
 
     def search_finished(self):
-        self.statusbar.showMessage("Search Finished", 3000)
+        self.statusbar.showMessage("Search Finished")
+        self.pushButton_search.setEnabled(True)
 
     def search_result(self, result):
         # self.listWidget_search_result.clear()
         # for file in result:
         #     self.listWidget_search_result.addItem(file[1])
         logging.debug(result)
+        self.populate_list(result)
+
+    def populate_list(self, result):
+        self.listWidget_search_result.clear()
+        for file in result:
+            file_path = self.folder_path / Path(file[2])
+            file_classification = file[3]
+            file_classification_confidence = file[4]
+            file_object = file[5]
+            file_object_confidence = file[6]
+            file_ocr = file[7]
+            file_ocr_confidence = file[8]
+
+            file_info = (
+                f"File: {file_path.as_posix()}\n"
+                f"Classification: {file_classification} ({file_classification_confidence:.2f})\n"
+                f"Object: {file_object} ({file_object_confidence:.2f})\n"
+                f"OCR: {file_ocr} ({file_ocr_confidence:.2f})"
+            )
+
+            item = QListWidgetItem()
+            item.setIcon(QIcon(file_path.as_posix()))
+            item.setText(file[2])
+
+            item.setToolTip(file_info)
+
+            self.listWidget_search_result.addItem(item)
+
+    def open_file(self, item: QListWidgetItem):
+        file_path = self.folder_path / Path(item.text())
+        url = QUrl.fromLocalFile(file_path)
+        QDesktopServices.openUrl(url)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
