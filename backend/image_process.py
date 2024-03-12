@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import io
+import logging
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -110,36 +111,40 @@ def read_img(
     object_detection_iou_threshold=0.5,
     OCR_model="RapidOCR",
 ):
-
-    with open(img_path, "rb") as file:
-        img_file = file.read()
-        img_hash = xxhash.xxh3_64_hexdigest(img_file)
-
-    # read image with pillow
     try:
-        img = Image.open(io.BytesIO(img_file))
+
+        with open(img_path, "rb") as file:
+            img_file = file.read()
+            img_hash = xxhash.xxh3_64_hexdigest(img_file)
+
+        # read image with pillow
+        try:
+            img = Image.open(io.BytesIO(img_file))
+        except Exception as e:
+            return {"error": str(e)}
+
+        res_dict = {}
+        res_dict["hash"] = img_hash
+        res_dict["path"] = img_path.as_posix()
+
+        cls_res = classify(img, classification_model, classification_threshold)
+        res_dict["classification"] = cls_res
+
+        obj_res = object_detection(
+            img,
+            object_detection_model,
+            object_detection_conf_threshold,
+            object_detection_iou_threshold,
+        )
+        res_dict["object_detection"] = obj_res
+
+        OCR_res = OCR(img_file, OCR_model)
+        res_dict["OCR"] = OCR_res
+
+        return res_dict
     except Exception as e:
+        logging.error(f"Exception:{e},Img_path:{img_path}", exc_info=True)
         return {"error": str(e)}
-
-    res_dict = {}
-    res_dict["hash"] = img_hash
-    res_dict["path"] = img_path.as_posix()
-
-    cls_res = classify(img, classification_model, classification_threshold)
-    res_dict["classification"] = cls_res
-
-    obj_res = object_detection(
-        img,
-        object_detection_model,
-        object_detection_conf_threshold,
-        object_detection_iou_threshold,
-    )
-    res_dict["object_detection"] = obj_res
-
-    OCR_res = OCR(img_file, OCR_model)
-    res_dict["OCR"] = OCR_res
-
-    return res_dict
 
 
 def read_img_warper(args: tuple):
