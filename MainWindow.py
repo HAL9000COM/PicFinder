@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 from backend.db_ops import DB
 from backend.image_process import read_img_warper
 from MainWindow_ui import Ui_MainWindow
+from SettingsWindow import SettingsWindow
 
 
 class QLogSignal(QObject):
@@ -43,6 +44,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.setAcceptDrops(True)
+
+        # add actions to menubar
+        self.actionSettings = self.menubar.addAction("Settings")
+        self.actionAbout = self.menubar.addAction("About")
+        self.actionSettings.triggered.connect(self.open_settings)
+        self.actionAbout.triggered.connect(self.open_about)
 
         self.pushButton_folder_browse.clicked.connect(self.browse_folder)
         self.pushButton_index.clicked.connect(self.index_folder)
@@ -84,6 +91,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg.setText(message)
         msg.setWindowTitle("Error")
         msg.exec_()
+
+    def open_settings(self):
+        self.settings_window = SettingsWindow()
+        self.settings_window.setWindowTitle("Settings")
+        self.settings_window.show()
+
+    def open_about(self):
+        pass
 
     def lineEdit_folder_textChanged(self, text):
         if text:
