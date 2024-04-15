@@ -6,6 +6,7 @@ import sys
 from multiprocessing import Pool
 from pathlib import Path
 
+import onnxruntime
 from PySide6.QtCore import QObject, QSettings, QSize, Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
@@ -122,7 +123,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings_window.show()
 
     def open_about(self):
-        pass
+        self.about_window = AboutWindow()
+        self.about_window.show()
 
     def lineEdit_folder_textChanged(self, text):
         if text:
@@ -440,3 +442,19 @@ class SearchWorker(QObject):
         except Exception as e:
             logging.error(e, exc_info=True)
             self.finished.emit()
+
+
+class AboutWindow(QMessageBox):
+    def __init__(self):
+        super(AboutWindow, self).__init__()
+        self.setWindowTitle("About")
+        self.setIcon(QMessageBox.Information)
+        text = (
+            "PicFinder\n"
+            + "Version: 0.1\n"
+            + f"Python version: {sys.version}\n"
+            + f"onnxruntime version: {onnxruntime.__version__}\n"
+            + f"onnxruntime hardware: {onnxruntime.get_device()}\n"
+            + f"onnxruntime available providers: {onnxruntime.get_available_providers()}\n"
+        )
+        self.setText(text)
