@@ -7,7 +7,7 @@ TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS pictures (
     id INTEGER PRIMARY KEY,
     hash TEXT,
-    path TEXT,
+    path TEXT UNIQUE,
     classification TEXT,
     classification_confidence REAL,
     object TEXT,
@@ -49,9 +49,17 @@ SELECT jieba_dict(?);
 SEARCH_JIEBA_SQL = """
 SELECT * FROM pictures WHERE id IN (SELECT id FROM pictures_fts WHERE pictures_fts MATCH jieba_query(?) ORDER BY rank);
 """
+# insert, update if path exists
 INSERT_SQL = """
 INSERT INTO pictures (hash, path, classification, classification_confidence, object, object_confidence, OCR, ocr_confidence)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(path) DO UPDATE SET
+    classification = excluded.classification,
+    classification_confidence = excluded.classification_confidence,
+    object = excluded.object,
+    object_confidence = excluded.object_confidence,
+    OCR = excluded.OCR,
+    ocr_confidence = excluded.ocr_confidence;
 """
 
 
