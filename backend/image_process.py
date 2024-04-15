@@ -15,24 +15,31 @@ from backend.yolo import YOLOv8
 
 
 def classify(image: Image.Image, model: str, threshold: float = 0.7):
-    if model == "yolov8":
-        from backend.resources.label_list import image_net
-        from backend.yolo.YOLO import YOLOv8Cls
+    from backend.resources.label_list import image_net
+    from backend.yolo.YOLO import YOLOv8Cls
 
-        YOLOv8_cls_path = Path(sys.argv[0]).parent / "models" / "yolov8-cls.onnx"
-
-        class_ids, confidence = YOLOv8Cls(YOLOv8_cls_path, conf_thres=threshold)(image)
-        if len(class_ids) == 0:
+    match model:
+        case "YOLOv8n":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8n-cls.onnx"
+        case "YOLOv8s":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8s-cls.onnx"
+        case "YOLOv8m":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8m-cls.onnx"
+        case "YOLOv8l":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8l-cls.onnx"
+        case "YOLOv8x":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8x-cls.onnx"
+        case _:
             return None
-
-        class_names = [image_net[class_id][1] for class_id in class_ids]
-        result = [
-            (class_name, confidence[class_names.index(class_name)])
-            for class_name in class_names
-        ]
-        return result
-    else:
+    class_ids, confidence = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)(image)
+    if len(class_ids) == 0:
         return None
+    class_names = [image_net[class_id][1] for class_id in class_ids]
+    result = [
+        (class_name, confidence[class_names.index(class_name)])
+        for class_name in class_names
+    ]
+    return result
 
 
 def object_detection(
@@ -41,43 +48,59 @@ def object_detection(
     conf_threshold: float = 0.7,
     iou_threshold: float = 0.5,
 ):
-    if model == "yolov8":
+    match model:
+        case "YOLOv8n COCO":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8n.onnx"
+            class_name_list = coco
 
-        YOLOv8_COCO_path = Path(sys.argv[0]).parent / "models" / "yolov8.onnx"
+        case "YOLOv8s COCO":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8s.onnx"
+            class_name_list = coco
 
-        _, scores, class_ids = YOLOv8(YOLOv8_COCO_path, conf_threshold, iou_threshold)(
-            image
-        )
+        case "YOLOv8m COCO":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8m.onnx"
+            class_name_list = coco
 
-        if len(class_ids) == 0:
+        case "YOLOv8l COCO":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8l.onnx"
+            class_name_list = coco
+
+        case "YOLOv8x COCO":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8x.onnx"
+            class_name_list = coco
+
+        case "YOLOv8n Open Images v7":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8n-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8s Open Images v7":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8s-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8m Open Images v7":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8m-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8l Open Images v7":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8l-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8x Open Images v7":
+            YOLOv8_path = Path(sys.argv[0]).parent / "models" / "yolov8x-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case _:
             return None
 
-        class_names = [coco[class_id] for class_id in class_ids]
-        result = [
-            (class_name, scores[class_names.index(class_name)])
-            for class_name in class_names
-        ]
-
-        return result
-
-    elif model == "yolov8-oiv7":
-
-        YOLOv8_OIV7_path = Path(sys.argv[0]).parent / "models" / "yolov8-oiv7.onnx"
-        _, scores, class_ids = YOLOv8(YOLOv8_OIV7_path, conf_threshold, iou_threshold)(
-            image
-        )
-
-        if len(class_ids) == 0:
-            return None
-
-        class_names = [open_images_v7[class_id] for class_id in class_ids]
-        result = [
-            (class_name, scores[class_names.index(class_name)])
-            for class_name in class_names
-        ]
-        return result
-    else:
+    _, scores, class_ids = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)(image)
+    if len(class_ids) == 0:
         return None
+    class_names = [class_name_list[class_id] for class_id in class_ids]
+    result = [
+        (class_name, scores[class_names.index(class_name)])
+        for class_name in class_names
+    ]
+    return result
 
 
 def OCR(img_file, model: str):
@@ -98,12 +121,13 @@ def OCR(img_file, model: str):
 # %%
 def read_img(
     img_path: Path,
-    classification_model="yolov8",
+    classification_model="YOLOv8n",
     classification_threshold=0.7,
-    object_detection_model="yolov8",
+    object_detection_model="YOLOv8n COCO",
     object_detection_conf_threshold=0.7,
     object_detection_iou_threshold=0.5,
     OCR_model="RapidOCR",
+    **kwargs,
 ):
     try:
 

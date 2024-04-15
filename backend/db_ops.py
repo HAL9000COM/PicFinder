@@ -84,6 +84,11 @@ class DB:
         else:
             return self.conn.execute(SEARCH_SIMPLE_SQL, (query,)).fetchall()
 
+    def check_hash(self, hash):
+        return self.conn.execute(
+            "SELECT * FROM pictures WHERE hash = ?", (hash,)
+        ).fetchall()
+
     def init_jieba(self, dict_path):
         self.conn.execute(INIT_JIEBA_SQL, (dict_path,))
 

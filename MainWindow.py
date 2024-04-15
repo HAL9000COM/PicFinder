@@ -6,7 +6,7 @@ import sys
 from multiprocessing import Pool
 from pathlib import Path
 
-from PySide6.QtCore import QObject, QSize, Qt, QThread, QUrl, Signal
+from PySide6.QtCore import QObject, QSettings, QSize, Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -86,6 +86,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logging.getLogger().addHandler(h)
         q_log_signal.log.connect(self.error_pop_up)
 
+        self.update_settings()
+
+    def update_settings(self):
+        settings = QSettings("HAL9000COM", "PicFinder")
+        self.settings = {}
+        self.settings["classification_model"] = settings.value(
+            "classification_model", "YOLOv8n"
+        )
+        self.settings["classification_threshold"] = float(
+            settings.value("classification_threshold", 0.7)
+        )
+        self.settings["object_detection_model"] = settings.value(
+            "object_detection_model", "YOLOv8n COCO"
+        )
+        self.settings["object_detection_conf_threshold"] = float(
+            settings.value("object_detection_conf_threshold", 0.7)
+        )
+        self.settings["object_detection_iou_threshold"] = float(
+            settings.value("object_detection_iou_threshold", 0.5)
+        )
+        self.settings["OCR_model"] = settings.value("OCR_model", "RapidOCR")
+        self.settings["AlwaysUpdate"] = settings.value("AlwaysUpdate", False, type=bool)
+
     def error_pop_up(self, message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
@@ -144,11 +167,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
         except:
             pass
+        self.update_settings()
         if self.folder_path.exists() and self.folder_path.is_dir():
 
             self.listWidget_search_result.clear()
 
-            self.index_worker = IndexWorker(self.folder_path)
+            self.index_worker = IndexWorker(self.folder_path, **self.settings)
             self.index_worker_thread = QThread()
             self.index_worker.moveToThread(self.index_worker_thread)
             self.index_worker_thread.started.connect(self.index_worker.run)
@@ -264,13 +288,83 @@ class IndexWorker(QObject):
     finished = Signal()
     progress = Signal(int)
 
-    def __init__(self, folder_path: Path):
+    def __init__(self, folder_path: Path, **kwargs):
         super(IndexWorker, self).__init__()
         self.folder = folder_path
+        self.kwargs = kwargs
+
+    def run(self):
+        try:
+            db_path = self.folder / "PicFinder.db"
+            if self.kwargs["AlwaysUpdate"]:
+                if db_path.exists():
+                    db_path.unlink()
+            self.db = DB(db_path)
+            results = self.read_folder(self.folder, **self.kwargs)
+
+            for result in results:
+                self.save_to_db(result)
+            self.db.close()
+            self.finished.emit()
+        except Exception as e:
+            logging.error(e, exc_info=True)
+            self.finished.emit()
+
+    def save_to_db(self, result: dict):
+
+        if "error" in result.keys():
+            return
+
+        rel_path = Path(result["path"]).relative_to(self.folder).as_posix()
+
+        classification, classification_confidence_avg = self.combine_classification(
+            result["classification"]
+        )
+
+        object, object_confidence_avg = self.combine_object_detection(
+            result["object_detection"]
+        )
+
+        OCR, ocr_confidence_avg = self.combine_ocr(result["OCR"])
+
+        self.db.insert(
+            result["hash"],
+            rel_path,
+            classification,
+            classification_confidence_avg,
+            object,
+            object_confidence_avg,
+            OCR,
+            ocr_confidence_avg,
+        )
 
     def read_folder(self, folder_path: Path, **kwargs):
         # list all files in the folder and subfolders
         file_list = [file for file in folder_path.rglob("*") if file.is_file()]
+
+        # check if file is supported by pillow
+        supported_suffix = [
+            ".bmp",
+            ".jpg",
+            ".jpeg",
+            ".j2k",
+            ".jp2",
+            ".jpx",
+            ".png",
+            ".gif",
+            ".tiff",
+            ".tif",
+            ".webp",
+            ".ico",
+        ]
+        file_list = [
+            file for file in file_list if file.suffix.lower() in supported_suffix
+        ]
+
+        file_list = [
+            file for file in file_list if self.check_file_exists(file) is False
+        ]
+
         input_list = [(file, kwargs) for file in file_list]
 
         with Pool() as p:
@@ -281,72 +375,50 @@ class IndexWorker(QObject):
                 self.progress.emit(int((i + 1) / total_files * 100))
                 yield result
 
-    def run(self):
-        try:
-            db_path = self.folder / "PicFinder.db"
-            if db_path.exists():
-                db_path.unlink()
+    def check_file_exists(self, file_path):
+        with open(file_path, "rb") as file:
+            img_file = file.read()
+            # get md5 hash of image
+            img_hash = hashlib.md5(img_file).hexdigest()
+            result = self.db.check_hash(img_hash)
+            if result:
+                return True
+            else:
+                return False
 
-            results = self.read_folder(self.folder)
+    def combine_classification(self, classification_list):
+        if classification_list is None:
+            classification = ""
+            classification_confidence_avg = 0
+        else:
+            classification = " ".join([res[0] for res in classification_list])
+            classification_confidence_list = [res[1] for res in classification_list]
+            classification_confidence_avg = sum(
+                classification_confidence_list  # type: ignore
+            ) / len(classification_confidence_list)
+        return classification, classification_confidence_avg
 
-            db = DB(db_path)
+    def combine_object_detection(self, object_detection_list):
+        if object_detection_list is None:
+            object = ""
+            object_confidence_avg = 0
+        else:
+            object = " ".join([res[0] for res in object_detection_list])
+            object_confidence_list = [res[1] for res in object_detection_list]
+            object_confidence_avg = sum(object_confidence_list) / len(  # type: ignore
+                object_confidence_list
+            )
+        return object, object_confidence_avg
 
-            for result in results:
-                logging.debug(result)
-                if "error" in result.keys():
-                    continue
-
-                rel_path = Path(result["path"]).relative_to(self.folder).as_posix()
-
-                if result["classification"] is None:
-                    classification = ""
-                    classification_confidence_avg = 0
-                else:
-                    classification = " ".join(
-                        [res[0] for res in result["classification"]]
-                    )
-                    classification_confidence_list = [
-                        res[1] for res in result["classification"]
-                    ]
-                    classification_confidence_avg = sum(
-                        classification_confidence_list  # type: ignore
-                    ) / len(classification_confidence_list)
-
-                if result["object_detection"] is None:
-                    object = ""
-                    object_confidence_avg = 0
-                else:
-                    object = " ".join([res[0] for res in result["object_detection"]])
-                    object_confidence_list = [
-                        res[1] for res in result["object_detection"]
-                    ]
-                    object_confidence_avg = sum(
-                        object_confidence_list  # type: ignore
-                    ) / len(object_confidence_list)
-
-                if result["OCR"] is None:
-                    OCR = ""
-                    ocr_confidence_avg = 0
-                else:
-                    OCR = " ".join([res[0] for res in result["OCR"]])
-                    ocr_confidence_list = [res[1] for res in result["OCR"]]
-                    ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)  # type: ignore
-
-                db.insert(
-                    result["hash"],
-                    rel_path,
-                    classification,
-                    classification_confidence_avg,
-                    object,
-                    object_confidence_avg,
-                    OCR,
-                    ocr_confidence_avg,
-                )
-            db.close()
-            self.finished.emit()
-        except Exception as e:
-            logging.error(e, exc_info=True)
-            self.finished.emit()
+    def combine_ocr(self, ocr_list):
+        if ocr_list is None:
+            OCR = ""
+            ocr_confidence_avg = 0
+        else:
+            OCR = " ".join([res[0] for res in ocr_list])
+            ocr_confidence_list = [res[1] for res in ocr_list]
+            ocr_confidence_avg = sum(ocr_confidence_list) / len(ocr_confidence_list)
+        return OCR, ocr_confidence_avg
 
 
 class SearchWorker(QObject):
