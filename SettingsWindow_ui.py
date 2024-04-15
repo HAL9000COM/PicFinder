@@ -15,15 +15,15 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QGroupBox,
-    QHBoxLayout, QLabel, QPushButton, QSizePolicy,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
+    QGroupBox, QHBoxLayout, QLabel, QPushButton,
+    QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_Settings(object):
     def setupUi(self, Settings):
         if not Settings.objectName():
             Settings.setObjectName(u"Settings")
-        Settings.resize(400, 304)
+        Settings.resize(400, 366)
         self.verticalLayout_4 = QVBoxLayout(Settings)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.groupBox = QGroupBox(Settings)
@@ -174,6 +174,18 @@ class Ui_Settings(object):
 
         self.verticalLayout_4.addWidget(self.groupBox)
 
+        self.groupBox_5 = QGroupBox(Settings)
+        self.groupBox_5.setObjectName(u"groupBox_5")
+        self.verticalLayout_5 = QVBoxLayout(self.groupBox_5)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.checkBox_update = QCheckBox(self.groupBox_5)
+        self.checkBox_update.setObjectName(u"checkBox_update")
+
+        self.verticalLayout_5.addWidget(self.checkBox_update)
+
+
+        self.verticalLayout_4.addWidget(self.groupBox_5)
+
         self.pushButton_save = QPushButton(Settings)
         self.pushButton_save.setObjectName(u"pushButton_save")
 
@@ -204,11 +216,11 @@ class Ui_Settings(object):
         self.comboBox_object_detection_model.setItemText(2, QCoreApplication.translate("Settings", u"YOLOv8m COCO", None))
         self.comboBox_object_detection_model.setItemText(3, QCoreApplication.translate("Settings", u"YOLOv8l  COCO", None))
         self.comboBox_object_detection_model.setItemText(4, QCoreApplication.translate("Settings", u"YOLOv8x  COCO", None))
-        self.comboBox_object_detection_model.setItemText(5, QCoreApplication.translate("Settings", u"YOLOv8n Open Image V7", None))
-        self.comboBox_object_detection_model.setItemText(6, QCoreApplication.translate("Settings", u"YOLOv8s Open Image V7", None))
-        self.comboBox_object_detection_model.setItemText(7, QCoreApplication.translate("Settings", u"YOLOv8m Open Image V7", None))
-        self.comboBox_object_detection_model.setItemText(8, QCoreApplication.translate("Settings", u"YOLOv8l Open Image V7", None))
-        self.comboBox_object_detection_model.setItemText(9, QCoreApplication.translate("Settings", u"YOLOv8x Open Image V7", None))
+        self.comboBox_object_detection_model.setItemText(5, QCoreApplication.translate("Settings", u"YOLOv8n Open Image v7", None))
+        self.comboBox_object_detection_model.setItemText(6, QCoreApplication.translate("Settings", u"YOLOv8s Open Image v7", None))
+        self.comboBox_object_detection_model.setItemText(7, QCoreApplication.translate("Settings", u"YOLOv8m Open Image v7", None))
+        self.comboBox_object_detection_model.setItemText(8, QCoreApplication.translate("Settings", u"YOLOv8l Open Image v7", None))
+        self.comboBox_object_detection_model.setItemText(9, QCoreApplication.translate("Settings", u"YOLOv8x Open Image v7", None))
 
         self.label_5.setText(QCoreApplication.translate("Settings", u"Confidence:", None))
         self.label_6.setText(QCoreApplication.translate("Settings", u"IoU:", None))
@@ -216,6 +228,8 @@ class Ui_Settings(object):
         self.label_3.setText(QCoreApplication.translate("Settings", u"Model:", None))
         self.comboBox_OCR_model.setItemText(0, QCoreApplication.translate("Settings", u"RapidOCR", None))
 
+        self.groupBox_5.setTitle(QCoreApplication.translate("Settings", u"Index Setting", None))
+        self.checkBox_update.setText(QCoreApplication.translate("Settings", u"Always Update Database", None))
         self.pushButton_save.setText(QCoreApplication.translate("Settings", u"Save", None))
     # retranslateUi
 

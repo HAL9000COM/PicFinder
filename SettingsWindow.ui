@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>304</height>
+    <height>366</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -137,27 +137,27 @@
              </item>
              <item>
               <property name="text">
-               <string>YOLOv8n Open Image V7</string>
+               <string>YOLOv8n Open Image v7</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>YOLOv8s Open Image V7</string>
+               <string>YOLOv8s Open Image v7</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>YOLOv8m Open Image V7</string>
+               <string>YOLOv8m Open Image v7</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>YOLOv8l Open Image V7</string>
+               <string>YOLOv8l Open Image v7</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>YOLOv8x Open Image V7</string>
+               <string>YOLOv8x Open Image v7</string>
               </property>
              </item>
             </widget>
@@ -246,6 +246,22 @@
           </layout>
          </item>
         </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Index Setting</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QCheckBox" name="checkBox_update">
+        <property name="text">
+         <string>Always Update Database</string>
+        </property>
        </widget>
       </item>
      </layout>

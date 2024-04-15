@@ -25,13 +25,16 @@ class SettingsWindow(QWidget, Ui_Settings):
             self.settings.value("object_detection_model", "YOLOv8n COCO")
         )
         self.doubleSpinBox_object_detection_confidence.setValue(
-            float(self.settings.value("object_detection_confidence", 0.7))
+            float(self.settings.value("object_detection_conf_threshold", 0.7))
         )
         self.doubleSpinBox_object_detection_iou.setValue(
-            float(self.settings.value("object_detection_iou", 0.5))
+            float(self.settings.value("object_detection_iou_threshold", 0.5))
         )
         self.comboBox_OCR_model.setCurrentText(
             self.settings.value("OCR_model", "RapidOCR")
+        )
+        self.checkBox_update.setChecked(
+            self.settings.value("AlwaysUpdate", False, type=bool)
         )
 
     def save_settings(self):
@@ -43,13 +46,17 @@ class SettingsWindow(QWidget, Ui_Settings):
             self.doubleSpinBox_classification_threshold.value(),
         )
         self.settings.setValue(
-            "object_detection_model", self.comboBox_object_detection_model.currentText()
+            "object_detection_model",
+            self.comboBox_object_detection_model.currentText(),
         )
         self.settings.setValue(
-            "object_detection_confidence",
+            "object_detection_conf_threshold",
             self.doubleSpinBox_object_detection_confidence.value(),
         )
         self.settings.setValue(
-            "object_detection_iou", self.doubleSpinBox_object_detection_iou.value()
+            "object_detection_iou_threshold",
+            self.doubleSpinBox_object_detection_iou.value(),
         )
         self.settings.setValue("OCR_model", self.comboBox_OCR_model.currentText())
+        self.settings.setValue("AlwaysUpdate", self.checkBox_update.isChecked())
+        self.close()
