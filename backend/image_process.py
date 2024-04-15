@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import hashlib
 import io
 import logging
 import sys
 from multiprocessing import Pool
 from pathlib import Path
 
-import xxhash
 from PIL import Image
 
 from backend.rapidOCR import process as rapidOCRprocess
@@ -109,7 +109,8 @@ def read_img(
 
         with open(img_path, "rb") as file:
             img_file = file.read()
-            img_hash = xxhash.xxh3_64_hexdigest(img_file)
+            # get md5 hash of image
+            img_hash = hashlib.md5(img_file).hexdigest()
 
         # read image with pillow
         try:

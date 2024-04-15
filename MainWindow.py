@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import hashlib
 import logging
 import sys
 from multiprocessing import Pool
