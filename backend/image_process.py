@@ -146,19 +146,22 @@ def read_img(
         res_dict["hash"] = img_hash
         res_dict["path"] = img_path.as_posix()
 
-        cls_res = classify(img, classification_model, classification_threshold)
-        res_dict["classification"] = cls_res
+        if classification_model != "None":
+            cls_res = classify(img, classification_model, classification_threshold)
+            res_dict["classification"] = cls_res
 
-        obj_res = object_detection(
-            img,
-            object_detection_model,
-            object_detection_conf_threshold,
-            object_detection_iou_threshold,
-        )
-        res_dict["object_detection"] = obj_res
+        if object_detection_model != "None":
+            obj_res = object_detection(
+                img,
+                object_detection_model,
+                object_detection_conf_threshold,
+                object_detection_iou_threshold,
+            )
+            res_dict["object_detection"] = obj_res
 
-        OCR_res = OCR(img_file, OCR_model)
-        res_dict["OCR"] = OCR_res
+        if OCR_model != "None":
+            OCR_res = OCR(img_file, OCR_model)
+            res_dict["OCR"] = OCR_res
 
         return res_dict
     except Exception as e:
