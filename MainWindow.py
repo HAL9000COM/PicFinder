@@ -11,10 +11,13 @@ from PySide6.QtCore import QObject, QSettings, QSize, Qt, QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
+    QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
     QMessageBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 from backend.db_ops import DB
@@ -460,17 +463,32 @@ class SearchWorker(QObject):
             self.finished.emit()
 
 
-class AboutWindow(QMessageBox):
+class AboutWindow(QWidget):
     def __init__(self):
         super(AboutWindow, self).__init__()
-        self.setWindowTitle("About")
-        self.setIcon(QMessageBox.Information)
-        text = (
-            "PicFinder\n"
-            + "Version: 0.1\n"
+        self.label_1 = QLabel("PicFinder Version: 0.1\n")
+        self.label_2 = QLabel("Author: HAL9000COM\n")
+        self.label_3 = QLabel(
+            "For license and source code, please visit:\n"
+            + "<a href=https://github.com/HAL9000COM/PicFinder>GitHub</a>\n"
+        )
+        self.label_3.setOpenExternalLinks(True)
+        self.label_3.setWordWrap(True)
+        self.label_3.setTextFormat(Qt.RichText)
+
+        self.label_4 = QLabel(
+            "System Information:\n"
             + f"Python version: {sys.version}\n"
             + f"onnxruntime version: {onnxruntime.__version__}\n"
             + f"onnxruntime hardware: {onnxruntime.get_device()}\n"
             + f"onnxruntime available providers: {onnxruntime.get_available_providers()}\n"
         )
-        self.setText(text)
+        self.label_4.setWordWrap(True)
+
+        self.layout_1 = QVBoxLayout()
+        self.layout_1.addWidget(self.label_1)
+        self.layout_1.addWidget(self.label_2)
+        self.layout_1.addWidget(self.label_3)
+        self.layout_1.addWidget(self.label_4)
+
+        self.setLayout(self.layout_1)
