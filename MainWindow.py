@@ -108,7 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             settings.value("object_detection_iou_threshold", 0.5)
         )
         self.settings["OCR_model"] = settings.value("OCR_model", "RapidOCR")
-        self.settings["AlwaysUpdate"] = settings.value("AlwaysUpdate", False, type=bool)
+        self.settings["FullUpdate"] = settings.value("FullUpdate", False, type=bool)
 
     def error_pop_up(self, message):
         msg = QMessageBox()

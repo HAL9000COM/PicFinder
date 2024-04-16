@@ -34,7 +34,7 @@ class SettingsWindow(QWidget, Ui_Settings):
             self.settings.value("OCR_model", "RapidOCR")
         )
         self.checkBox_update.setChecked(
-            self.settings.value("AlwaysUpdate", False, type=bool)
+            self.settings.value("FullUpdate", False, type=bool)
         )
 
     def save_settings(self):
@@ -58,5 +58,5 @@ class SettingsWindow(QWidget, Ui_Settings):
             self.doubleSpinBox_object_detection_iou.value(),
         )
         self.settings.setValue("OCR_model", self.comboBox_OCR_model.currentText())
-        self.settings.setValue("AlwaysUpdate", self.checkBox_update.isChecked())
+        self.settings.setValue("FullUpdate", self.checkBox_update.isChecked())
         self.close()

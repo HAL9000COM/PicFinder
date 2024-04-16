@@ -62,6 +62,11 @@
                <string>YOLOv8x</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>None</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -160,6 +165,11 @@
                <string>YOLOv8x Open Image v7</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>None</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -241,6 +251,11 @@
                <string>RapidOCR</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>None</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
@@ -260,7 +275,7 @@
       <item>
        <widget class="QCheckBox" name="checkBox_update">
         <property name="text">
-         <string>Always Update Database</string>
+         <string>Fully Update Database</string>
         </property>
        </widget>
       </item>
