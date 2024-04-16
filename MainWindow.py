@@ -298,10 +298,20 @@ class IndexWorker(QObject):
     def run(self):
         try:
             db_path = self.folder / "PicFinder.db"
-            if self.kwargs["AlwaysUpdate"]:
-                if db_path.exists():
-                    db_path.unlink()
             self.db = DB(db_path)
+
+            self.db.add_history(
+                classification_model=self.kwargs["classification_model"],
+                classification_threshold=self.kwargs["classification_threshold"],
+                object_detection_model=self.kwargs["object_detection_model"],
+                object_detection_confidence=self.kwargs[
+                    "object_detection_conf_threshold"
+                ],
+                object_detection_iou=self.kwargs["object_detection_iou_threshold"],
+                OCR_model=self.kwargs["OCR_model"],
+                full_update=self.kwargs["FullUpdate"],
+            )
+
             results = self.read_folder(self.folder, **self.kwargs)
 
             for result in results:
@@ -322,11 +332,9 @@ class IndexWorker(QObject):
         classification, classification_confidence_avg = self.combine_classification(
             result["classification"]
         )
-
         object, object_confidence_avg = self.combine_object_detection(
             result["object_detection"]
         )
-
         OCR, ocr_confidence_avg = self.combine_ocr(result["OCR"])
 
         self.db.insert(
@@ -341,10 +349,22 @@ class IndexWorker(QObject):
         )
 
     def read_folder(self, folder_path: Path, **kwargs):
-        # list all files in the folder and subfolders
-        file_list = [file for file in folder_path.rglob("*") if file.is_file()]
 
-        # check if file is supported by pillow
+        self.remove_deleted_files(folder_path)
+        file_list = self.sync_file_list(folder_path)
+        input_list = [(file, kwargs) for file in file_list]
+
+        logging.info(f"Indexing {len(input_list)} files")
+
+        with Pool() as p:
+            total_files = len(input_list)
+            for i, result in enumerate(
+                p.imap(read_img_warper, input_list, chunksize=1)
+            ):
+                self.progress.emit(int((i + 1) / total_files * 100))
+                yield result
+
+    def sync_file_list(self, folder_path: Path):
         supported_suffix = [
             ".bmp",
             ".jpg",
@@ -359,34 +379,30 @@ class IndexWorker(QObject):
             ".webp",
             ".ico",
         ]
-        file_list = [
-            file for file in file_list if file.suffix.lower() in supported_suffix
-        ]
 
-        file_list = [
-            file for file in file_list if self.check_file_exists(file) is False
-        ]
+        existing_entries = self.db.fetch_all()
 
-        input_list = [(file, kwargs) for file in file_list]
+        for file in folder_path.rglob("*"):
+            if file.is_file() and file.suffix.lower() in supported_suffix:
+                if self.kwargs["FullUpdate"]:
+                    yield file
+                else:
+                    rel_path = file.relative_to(folder_path).as_posix()
+                    if rel_path in existing_entries.keys():
+                        existing_hash = hashlib.md5(file.read_bytes()).hexdigest()
+                        if existing_hash == existing_entries[rel_path]:
+                            continue
+                        else:
+                            yield file
+                    else:
+                        yield file
 
-        with Pool() as p:
-            total_files = len(file_list)
-            for i, result in enumerate(
-                p.imap(read_img_warper, input_list, chunksize=1)
-            ):
-                self.progress.emit(int((i + 1) / total_files * 100))
-                yield result
-
-    def check_file_exists(self, file_path):
-        with open(file_path, "rb") as file:
-            img_file = file.read()
-            # get md5 hash of image
-            img_hash = hashlib.md5(img_file).hexdigest()
-            result = self.db.check_hash(img_hash)
-            if result:
-                return True
-            else:
-                return False
+    def remove_deleted_files(self, folder_path: Path):
+        existing_entries = self.db.fetch_all()
+        for path in existing_entries.keys():
+            if not (folder_path / path).exists():
+                logging.info(f"Removing {path} from database")
+                self.db.remove(path)
 
     def combine_classification(self, classification_list):
         if classification_list is None:

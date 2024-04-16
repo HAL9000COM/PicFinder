@@ -17,6 +17,21 @@ CREATE TABLE IF NOT EXISTS pictures (
     created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
 """
+
+HISTORY_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS history (
+    id INTEGER PRIMARY KEY,
+    classification_model TEXT,
+    classification_threshold REAL,
+    object_detection_model TEXT,
+    object_detection_confidence REAL,
+    object_detection_iou REAL,
+    OCR_model TEXT,
+    Full_update BOOLEAN,
+    indexed_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+"""
+
 SEARCH_TABLE_SQL = """
 CREATE VIRTUAL TABLE IF NOT EXISTS pictures_fts USING fts5(
     id,
@@ -62,6 +77,19 @@ ON CONFLICT(path) DO UPDATE SET
     ocr_confidence = excluded.ocr_confidence;
 """
 
+FETCH_SQL = """
+SELECT * FROM pictures WHERE path = ?;
+"""
+
+REMOVE_SQL = """
+DELETE FROM pictures WHERE path = ?;
+"""
+
+HISTORY_INSERT_SQL = """
+INSERT INTO history (classification_model, classification_threshold, object_detection_model, object_detection_confidence, object_detection_iou, OCR_model, Full_update)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+"""
+
 
 class DB:
     def __init__(self, path, jieba=False):
@@ -80,6 +108,7 @@ class DB:
         self.conn.enable_load_extension(True)
         self.conn.load_extension(extention_path.as_posix())
         self.conn.execute(TABLE_SQL)
+        self.conn.execute(HISTORY_TABLE_SQL)
         self.conn.execute(SEARCH_TABLE_SQL)
         self.conn.executescript(TRIGGER_SQL)
         self.jieba = jieba
@@ -99,6 +128,39 @@ class DB:
 
     def init_jieba(self, dict_path):
         self.conn.execute(INIT_JIEBA_SQL, (dict_path,))
+
+    def add_history(
+        self,
+        classification_model,
+        classification_threshold,
+        object_detection_model,
+        object_detection_confidence,
+        object_detection_iou,
+        OCR_model,
+        full_update,
+    ):
+        self.conn.execute(
+            HISTORY_INSERT_SQL,
+            (
+                classification_model,
+                classification_threshold,
+                object_detection_model,
+                object_detection_confidence,
+                object_detection_iou,
+                OCR_model,
+                full_update,
+            ),
+        )
+        self.conn.commit()
+
+    def fetch(self, path):
+        return self.conn.execute(FETCH_SQL, (path,)).fetchone()
+
+    def fetch_all(self):
+        results = self.conn.execute("SELECT * FROM pictures").fetchall()
+        # path:hash
+        res_dict = {result[2]: result[1] for result in results}
+        return res_dict
 
     def insert(
         self,
@@ -124,6 +186,10 @@ class DB:
                 ocr_confidence,
             ),
         )
+        self.conn.commit()
+
+    def remove(self, path):
+        self.conn.execute(REMOVE_SQL, (path,))
         self.conn.commit()
 
     def close(self):
