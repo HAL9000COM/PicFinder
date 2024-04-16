@@ -4,6 +4,7 @@ import hashlib
 import io
 import logging
 import sys
+import time
 from multiprocessing import Pool
 from pathlib import Path
 
@@ -147,10 +148,19 @@ def read_img(
         res_dict["path"] = img_path.as_posix()
 
         if classification_model != "None":
+            cls_start = time.perf_counter()
+
             cls_res = classify(img, classification_model, classification_threshold)
             res_dict["classification"] = cls_res
 
+            cls_end = time.perf_counter()
+            logging.debug(
+                f"Image:{img_path.as_posix()},Classification Time: {cls_end-cls_start}"
+            )
+
         if object_detection_model != "None":
+            obj_start = time.perf_counter()
+
             obj_res = object_detection(
                 img,
                 object_detection_model,
@@ -159,9 +169,19 @@ def read_img(
             )
             res_dict["object_detection"] = obj_res
 
+            obj_end = time.perf_counter()
+            logging.debug(
+                f"Image:{img_path.as_posix()},Object Detection Time: {obj_end-obj_start}"
+            )
+
         if OCR_model != "None":
+            OCR_start = time.perf_counter()
+
             OCR_res = OCR(img_file, OCR_model)
             res_dict["OCR"] = OCR_res
+
+            OCR_end = time.perf_counter()
+            logging.debug(f"Image:{img_path.as_posix()},OCR Time: {OCR_end-OCR_start}")
 
         return res_dict
     except Exception as e:
