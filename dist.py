@@ -55,6 +55,7 @@ setup(
     executables=[
         Executable(
             "main.py",
+            target_name="PicFinder.exe",
             copyright=COPYRIGHT,
             # icon="icon.ico",
             base="Win32GUI",
