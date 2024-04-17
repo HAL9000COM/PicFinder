@@ -353,13 +353,25 @@ class IndexWorker(QObject):
 
         rel_path = Path(result["path"]).relative_to(self.folder).as_posix()
 
-        classification, classification_confidence_avg = self.combine_classification(
-            result["classification"]
-        )
-        object, object_confidence_avg = self.combine_object_detection(
-            result["object_detection"]
-        )
-        OCR, ocr_confidence_avg = self.combine_ocr(result["OCR"])
+        try:
+            classification, classification_confidence_avg = self.combine_classification(
+                result["classification"]
+            )
+        except KeyError:
+            classification = ""
+            classification_confidence_avg = 0
+        try:
+            object, object_confidence_avg = self.combine_object_detection(
+                result["object_detection"]
+            )
+        except KeyError:
+            object = ""
+            object_confidence_avg = 0
+        try:
+            OCR, ocr_confidence_avg = self.combine_ocr(result["OCR"])
+        except KeyError:
+            OCR = ""
+            ocr_confidence_avg = 0
 
         self.db.insert(
             result["hash"],

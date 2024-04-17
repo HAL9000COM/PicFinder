@@ -47,6 +47,7 @@ class Ui_Settings(object):
         self.comboBox_classification_model.addItem("")
         self.comboBox_classification_model.addItem("")
         self.comboBox_classification_model.addItem("")
+        self.comboBox_classification_model.addItem("")
         self.comboBox_classification_model.setObjectName(u"comboBox_classification_model")
 
         self.horizontalLayout_2.addWidget(self.comboBox_classification_model)
@@ -87,6 +88,7 @@ class Ui_Settings(object):
         self.horizontalLayout_4.addWidget(self.label_2)
 
         self.comboBox_object_detection_model = QComboBox(self.groupBox_3)
+        self.comboBox_object_detection_model.addItem("")
         self.comboBox_object_detection_model.addItem("")
         self.comboBox_object_detection_model.addItem("")
         self.comboBox_object_detection_model.addItem("")
@@ -161,6 +163,7 @@ class Ui_Settings(object):
 
         self.comboBox_OCR_model = QComboBox(self.groupBox_4)
         self.comboBox_OCR_model.addItem("")
+        self.comboBox_OCR_model.addItem("")
         self.comboBox_OCR_model.setObjectName(u"comboBox_OCR_model")
 
         self.horizontalLayout_5.addWidget(self.comboBox_OCR_model)
@@ -207,6 +210,7 @@ class Ui_Settings(object):
         self.comboBox_classification_model.setItemText(2, QCoreApplication.translate("Settings", u"YOLOv8m", None))
         self.comboBox_classification_model.setItemText(3, QCoreApplication.translate("Settings", u"YOLOv8l", None))
         self.comboBox_classification_model.setItemText(4, QCoreApplication.translate("Settings", u"YOLOv8x", None))
+        self.comboBox_classification_model.setItemText(5, QCoreApplication.translate("Settings", u"None", None))
 
         self.label_4.setText(QCoreApplication.translate("Settings", u"Threshold:", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("Settings", u"Object Detection:", None))
@@ -221,15 +225,17 @@ class Ui_Settings(object):
         self.comboBox_object_detection_model.setItemText(7, QCoreApplication.translate("Settings", u"YOLOv8m Open Image v7", None))
         self.comboBox_object_detection_model.setItemText(8, QCoreApplication.translate("Settings", u"YOLOv8l Open Image v7", None))
         self.comboBox_object_detection_model.setItemText(9, QCoreApplication.translate("Settings", u"YOLOv8x Open Image v7", None))
+        self.comboBox_object_detection_model.setItemText(10, QCoreApplication.translate("Settings", u"None", None))
 
         self.label_5.setText(QCoreApplication.translate("Settings", u"Confidence:", None))
         self.label_6.setText(QCoreApplication.translate("Settings", u"IoU:", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Settings", u"OCR", None))
         self.label_3.setText(QCoreApplication.translate("Settings", u"Model:", None))
         self.comboBox_OCR_model.setItemText(0, QCoreApplication.translate("Settings", u"RapidOCR", None))
+        self.comboBox_OCR_model.setItemText(1, QCoreApplication.translate("Settings", u"None", None))
 
         self.groupBox_5.setTitle(QCoreApplication.translate("Settings", u"Index Setting", None))
-        self.checkBox_update.setText(QCoreApplication.translate("Settings", u"Always Update Database", None))
+        self.checkBox_update.setText(QCoreApplication.translate("Settings", u"Fully Update Database", None))
         self.pushButton_save.setText(QCoreApplication.translate("Settings", u"Save", None))
     # retranslateUi
 
