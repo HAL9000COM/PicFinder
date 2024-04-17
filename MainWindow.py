@@ -50,6 +50,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setAcceptDrops(True)
 
+        q_log_signal = QLogSignal()
+        h = QLogHandler(q_log_signal)
+        h.setLevel(logging.ERROR)
+        logging.getLogger().addHandler(h)
+        q_log_signal.log.connect(self.error_pop_up)
+
         # add actions to menubar
         self.actionSettings = self.menubar.addAction("Settings")
         self.actionAbout = self.menubar.addAction("About")
@@ -82,13 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_index.setEnabled(False)
         self.pushButton_search.setEnabled(False)
 
-        q_log_signal = QLogSignal()
 
-        h = QLogHandler(q_log_signal)
-        # set the logger level
-        h.setLevel(logging.ERROR)
-        logging.getLogger().addHandler(h)
-        q_log_signal.log.connect(self.error_pop_up)
 
         self.update_settings()
 
