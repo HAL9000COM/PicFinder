@@ -5,3 +5,4 @@ poetry.lock
 VERSION
 build_windows/
 models/
+main.dist/

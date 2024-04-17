@@ -27,6 +27,20 @@ If you clone the repository:
 
  Only YOLOv8n and YOLOv8n COCO models are included in the minimal release. For more models, download the ONNX format models and put them in the `models` directory.
 
+## EXE creation
+
+1. Using cx_Freeze
+
+    ```bash
+    python dist.py build
+    ```
+
+2. Using Nuitka
+
+    ```bash
+    python -m nuitka main.py --standalone --enable-plugin=pyside6  --include-data-dir=./backend/libsimple-windows-x64=lib/backend/libsimple-windows-x64 --include-data-files=./backend/libsimple-windows-x64/simple.dll=lib/backend/libsimple-windows-x64/simple.dll --include-data-dir=./models=models --disable-console
+    ```
+
 ## Details
 
 * OCR is done using [RapidOCR](https://github.com/RapidAI/RapidOCR)
