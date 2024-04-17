@@ -499,7 +499,8 @@ class SearchWorker(QObject):
 class AboutWindow(QWidget):
     def __init__(self):
         super(AboutWindow, self).__init__()
-        self.label_1 = QLabel("PicFinder Version: 0.1\n")
+        self.setWindowTitle("About")
+        self.label_1 = QLabel("PicFinder Version: 0.1.0\n")
         self.label_2 = QLabel("Author: HAL9000COM\n")
         self.label_3 = QLabel(
             "For license and source code, please visit:\n"
@@ -512,6 +513,7 @@ class AboutWindow(QWidget):
         self.label_4 = QLabel(
             "System Information:\n"
             + f"Python version: {sys.version}\n"
+            + "libsimple version: 0.4.0\n"
             + f"onnxruntime version: {onnxruntime.__version__}\n"
             + f"onnxruntime hardware: {onnxruntime.get_device()}\n"
             + f"onnxruntime available providers: {onnxruntime.get_available_providers()}\n"
