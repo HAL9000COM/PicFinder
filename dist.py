@@ -29,6 +29,7 @@ with open("VERSION", "w+", encoding="utf-8") as f:
 additional_files = [
     "VERSION",
     "models",
+    "README.md",
     # "icon.ico",
 ]
 add_packages = [
