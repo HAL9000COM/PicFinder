@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'MainWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.1
+## Created by: Qt User Interface Compiler version 6.5.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -29,8 +29,8 @@ class Ui_MainWindow(object):
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
         self.actionPreference = QAction(MainWindow)
         self.actionPreference.setObjectName(u"actionPreference")
-        self.actionClear_Cache = QAction(MainWindow)
-        self.actionClear_Cache.setObjectName(u"actionClear_Cache")
+        self.actionClear_DB = QAction(MainWindow)
+        self.actionClear_DB.setObjectName(u"actionClear_DB")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -95,22 +95,17 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 20))
+        self.menubar.setGeometry(QRect(0, 0, 800, 22))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuFile.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
-        self.menuSettings = QMenu(self.menubar)
-        self.menuSettings.setObjectName(u"menuSettings")
-        self.menuSettings.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
         self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuSettings.menuAction())
-        self.menuFile.addAction(self.actionClear_Cache)
-        self.menuSettings.addAction(self.actionPreference)
+        self.menuFile.addAction(self.actionClear_DB)
 
         self.retranslateUi(MainWindow)
 
@@ -120,13 +115,12 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PicFinder", None))
         self.actionPreference.setText(QCoreApplication.translate("MainWindow", u"Preference", None))
-        self.actionClear_Cache.setText(QCoreApplication.translate("MainWindow", u"Clear Cache", None))
+        self.actionClear_DB.setText(QCoreApplication.translate("MainWindow", u"Clear Database", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Folder:", None))
         self.pushButton_folder_browse.setText(QCoreApplication.translate("MainWindow", u"Browse", None))
         self.pushButton_index.setText(QCoreApplication.translate("MainWindow", u"Index", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Search:", None))
         self.pushButton_search.setText(QCoreApplication.translate("MainWindow", u"Search", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
-        self.menuSettings.setTitle(QCoreApplication.translate("MainWindow", u"Settings", None))
     # retranslateUi
 
