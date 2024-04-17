@@ -2,6 +2,7 @@
 
 import hashlib
 import logging
+import os
 import sys
 from multiprocessing import Pool
 from pathlib import Path
@@ -56,6 +57,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logging.getLogger().addHandler(h)
         q_log_signal.log.connect(self.error_pop_up)
 
+        self.actionClear_DB.triggered.connect(self.clear_db)
+
         # add actions to menubar
         self.actionSettings = self.menubar.addAction("Settings")
         self.actionAbout = self.menubar.addAction("About")
@@ -88,9 +91,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_index.setEnabled(False)
         self.pushButton_search.setEnabled(False)
 
-
-
         self.update_settings()
+
+    def clear_db(self):
+        try:
+            if self.index_worker_thread.isRunning():
+                logging.error("Indexing in progress, please wait")
+                return
+        except:
+            pass
+        try:
+            if self.search_worker_thread.isRunning():
+                logging.error("Search in progress, please wait")
+                return
+        except:
+            pass
+        try:
+            os.remove(self.db_path)
+        except Exception as e:
+            logging.error(e, exc_info=True)
+
+        self.statusbar.showMessage("Database Cleared")
 
     def update_settings(self):
         settings = QSettings("HAL9000COM", "PicFinder")

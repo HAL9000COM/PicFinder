@@ -29,8 +29,8 @@ class Ui_MainWindow(object):
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.UnitedStates))
         self.actionPreference = QAction(MainWindow)
         self.actionPreference.setObjectName(u"actionPreference")
-        self.actionClear_Cache = QAction(MainWindow)
-        self.actionClear_Cache.setObjectName(u"actionClear_Cache")
+        self.actionClear_DB = QAction(MainWindow)
+        self.actionClear_DB.setObjectName(u"actionClear_DB")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -105,7 +105,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.menubar.addAction(self.menuFile.menuAction())
-        self.menuFile.addAction(self.actionClear_Cache)
+        self.menuFile.addAction(self.actionClear_DB)
 
         self.retranslateUi(MainWindow)
 
@@ -115,7 +115,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PicFinder", None))
         self.actionPreference.setText(QCoreApplication.translate("MainWindow", u"Preference", None))
-        self.actionClear_Cache.setText(QCoreApplication.translate("MainWindow", u"Clear Cache", None))
+        self.actionClear_DB.setText(QCoreApplication.translate("MainWindow", u"Clear Database", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Folder:", None))
         self.pushButton_folder_browse.setText(QCoreApplication.translate("MainWindow", u"Browse", None))
         self.pushButton_index.setText(QCoreApplication.translate("MainWindow", u"Index", None))

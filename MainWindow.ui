@@ -94,7 +94,7 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionClear_Cache"/>
+    <addaction name="actionClear_DB"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -104,9 +104,9 @@
     <string>Preference</string>
    </property>
   </action>
-  <action name="actionClear_Cache">
+  <action name="actionClear_DB">
    <property name="text">
-    <string>Clear Cache</string>
+    <string>Clear Database</string>
    </property>
   </action>
  </widget>
