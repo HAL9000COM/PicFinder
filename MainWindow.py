@@ -215,7 +215,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage("Invalid Folder Path")
 
     def index_progress(self, value):
-        self.statusbar.showMessage(f"Indexing... {value}%")
+        self.statusbar.showMessage(f"Indexing... {value}")
 
     def index_finished(self):
         self.statusbar.showMessage("Indexing Finished")
@@ -312,7 +312,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 class IndexWorker(QObject):
     finished = Signal()
-    progress = Signal(int)
+    progress = Signal(str)
 
     def __init__(self, folder_path: Path, **kwargs):
         super(IndexWorker, self).__init__()
@@ -397,7 +397,7 @@ class IndexWorker(QObject):
             for i, result in enumerate(
                 p.imap(read_img_warper, input_list, chunksize=1)
             ):
-                self.progress.emit(int((i + 1) / total_files * 100))
+                self.progress.emit(f"{i + 1}/{total_files}")
                 yield result
 
     def sync_file_list(self, folder_path: Path):
