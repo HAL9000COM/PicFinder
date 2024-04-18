@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "A simple windows application to search for images in a directory."
 authors = ["HAL9000COM <f1226942353@icloud.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10,<3.12"
