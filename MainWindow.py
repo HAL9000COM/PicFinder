@@ -403,17 +403,27 @@ class IndexWorker(QObject):
     def sync_file_list(self, folder_path: Path):
         supported_suffix = [
             ".bmp",
-            ".jpg",
+            ".dib",
             ".jpeg",
-            ".j2k",
+            ".jpg",
+            ".jpe",
             ".jp2",
-            ".jpx",
             ".png",
-            ".gif",
+            ".webp",
+            ".avif",
+            ".pbm",
+            ".pgm",
+            ".ppm",
+            ".pxm",
+            ".pnm",
+            ".pfm",
+            ".sr",
+            ".ras",
             ".tiff",
             ".tif",
-            ".webp",
-            ".ico",
+            ".exr",
+            ".hdr",
+            ".pic",
         ]
 
         existing_entries = self.db.fetch_all()

@@ -8,7 +8,8 @@ import time
 from multiprocessing import Pool
 from pathlib import Path
 
-from PIL import Image
+import cv2
+import numpy as np
 
 from backend.rapidOCR import process as rapidOCRprocess
 from backend.resources.label_list import coco, open_images_v7
@@ -22,7 +23,7 @@ else:
     models_dir = Path(__file__).resolve().parent.parent / "models"
 
 
-def classify(image: Image.Image, model: str, threshold: float = 0.7):
+def classify(image: np.ndarray, model: str, threshold: float = 0.7):
     from backend.resources.label_list import image_net
     from backend.yolo.YOLO import YOLOv8Cls
 
@@ -51,7 +52,7 @@ def classify(image: Image.Image, model: str, threshold: float = 0.7):
 
 
 def object_detection(
-    image: Image.Image,
+    image: np.ndarray,
     model: str,
     conf_threshold: float = 0.7,
     iou_threshold: float = 0.5,
@@ -111,10 +112,10 @@ def object_detection(
     return result
 
 
-def OCR(img_file, model: str):
+def OCR(img, model: str):
     if model == "RapidOCR":
 
-        result = rapidOCRprocess(img_file)
+        result = rapidOCRprocess(img)
 
         if result is None or len(result) == 0:
             return None
@@ -144,9 +145,9 @@ def read_img(
             # get md5 hash of image
             img_hash = hashlib.md5(img_file).hexdigest()
 
-        # read image with pillow
+        # read image with cv2
         try:
-            img = Image.open(io.BytesIO(img_file))
+            img = cv2.imread(img_path.as_posix())
         except Exception as e:
             return {"error": str(e)}
 
@@ -184,7 +185,7 @@ def read_img(
         if OCR_model != "None":
             OCR_start = time.perf_counter()
 
-            OCR_res = OCR(img_file, OCR_model)
+            OCR_res = OCR(img, OCR_model)
             res_dict["OCR"] = OCR_res
 
             OCR_end = time.perf_counter()
