@@ -392,7 +392,7 @@ class IndexWorker(QObject):
 
         logging.info(f"Indexing {len(input_list)} files")
 
-        with Pool() as p:
+        with Pool(processes=4) as p:
             total_files = len(input_list)
             for i, result in enumerate(
                 p.imap(read_img_warper, input_list, chunksize=1)
