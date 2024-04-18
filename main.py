@@ -4,10 +4,11 @@
 import os
 import sys
 
-if sys.stdout is None:
+is_nuitka = "__compiled__" in globals()
+if sys.stdout is None or is_nuitka:
     # sys.stdout = open(os.devnull, "w")
     sys.stdout = open("stdout.log", "w")
-if sys.stderr is None:
+if sys.stderr is None or is_nuitka:
     # sys.stderr = open(os.devnull, "w")
     sys.stderr = open("stderr.log", "w")
 import logging
