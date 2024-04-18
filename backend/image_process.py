@@ -14,11 +14,12 @@ from backend.rapidOCR import process as rapidOCRprocess
 from backend.resources.label_list import coco, open_images_v7
 from backend.yolo import YOLOv8
 
-script_dir = (
-    Path(sys.executable).parent
-    if getattr(sys, "frozen", False)
-    else Path(__file__).resolve().parent
-)
+is_nuitka = "__compiled__" in globals()
+
+if is_nuitka or getattr(sys, "frozen", False):
+    models_dir = Path(sys.argv[0]).parent / "models"
+else:
+    models_dir = Path(__file__).resolve().parent.parent / "models"
 
 
 def classify(image: Image.Image, model: str, threshold: float = 0.7):
@@ -27,15 +28,15 @@ def classify(image: Image.Image, model: str, threshold: float = 0.7):
 
     match model:
         case "YOLOv8n":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8n-cls.onnx"
+            YOLOv8_path = models_dir / "yolov8n-cls.onnx"
         case "YOLOv8s":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8s-cls.onnx"
+            YOLOv8_path = models_dir / "yolov8s-cls.onnx"
         case "YOLOv8m":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8m-cls.onnx"
+            YOLOv8_path = models_dir / "yolov8m-cls.onnx"
         case "YOLOv8l":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8l-cls.onnx"
+            YOLOv8_path = models_dir / "yolov8l-cls.onnx"
         case "YOLOv8x":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8x-cls.onnx"
+            YOLOv8_path = models_dir / "yolov8x-cls.onnx"
         case _:
             return None
     class_ids, confidence = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)(image)
@@ -57,43 +58,43 @@ def object_detection(
 ):
     match model:
         case "YOLOv8n COCO":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8n.onnx"
+            YOLOv8_path = models_dir / "yolov8n.onnx"
             class_name_list = coco
 
         case "YOLOv8s COCO":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8s.onnx"
+            YOLOv8_path = models_dir / "yolov8s.onnx"
             class_name_list = coco
 
         case "YOLOv8m COCO":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8m.onnx"
+            YOLOv8_path = models_dir / "yolov8m.onnx"
             class_name_list = coco
 
         case "YOLOv8l COCO":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8l.onnx"
+            YOLOv8_path = models_dir / "yolov8l.onnx"
             class_name_list = coco
 
         case "YOLOv8x COCO":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8x.onnx"
+            YOLOv8_path = models_dir / "yolov8x.onnx"
             class_name_list = coco
 
         case "YOLOv8n Open Images v7":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8n-oiv7.onnx"
+            YOLOv8_path = models_dir / "yolov8n-oiv7.onnx"
             class_name_list = open_images_v7
 
         case "YOLOv8s Open Images v7":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8s-oiv7.onnx"
+            YOLOv8_path = models_dir / "yolov8s-oiv7.onnx"
             class_name_list = open_images_v7
 
         case "YOLOv8m Open Images v7":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8m-oiv7.onnx"
+            YOLOv8_path = models_dir / "yolov8m-oiv7.onnx"
             class_name_list = open_images_v7
 
         case "YOLOv8l Open Images v7":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8l-oiv7.onnx"
+            YOLOv8_path = models_dir / "yolov8l-oiv7.onnx"
             class_name_list = open_images_v7
 
         case "YOLOv8x Open Images v7":
-            YOLOv8_path = script_dir.parent / "models" / "yolov8x-oiv7.onnx"
+            YOLOv8_path = models_dir / "yolov8x-oiv7.onnx"
             class_name_list = open_images_v7
 
         case _:

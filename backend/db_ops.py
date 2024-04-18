@@ -90,16 +90,25 @@ INSERT INTO history (classification_model, classification_threshold, object_dete
 VALUES (?, ?, ?, ?, ?, ?, ?);
 """
 
+# prepare for multi-platform
+if sys.platform == "win32":
+    lib_dir_name = "libsimple-windows-x64"
+else:
+    lib_dir_name = "libsimple-windows-x64"
+
+
+is_nuitka = "__compiled__" in globals()
+
+if is_nuitka or getattr(sys, "frozen", False):
+    lib_dir = Path(sys.argv[0]).parent / "lib" / "backend" / lib_dir_name
+else:
+    lib_dir = Path(__file__).resolve().parent / lib_dir_name
+
 
 class DB:
     def __init__(self, path, jieba=False):
-        script_dir = (
-            Path(sys.executable).parent / "lib" / "backend"
-            if getattr(sys, "frozen", False)
-            else Path(__file__).resolve().parent
-        )
-        extention_path = script_dir / "libsimple-windows-x64" / "simple"
-        dict_path = script_dir / "libsimple-windows-x64" / "dict"
+        extention_path = lib_dir / "simple"
+        dict_path = lib_dir / "dict"
 
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.enable_load_extension(True)
