@@ -4,7 +4,7 @@ A simple windows application to search for images in a directory.
 
 ## Features
 
-* Search for text in images using OCR. Tested with English, Traditional Chinese, Simplified Chinese, Japanese.
+* Search for text in images using OCR. Tested with English, Traditional Chinese, Simplified Chinese.
 * Search for objects in images using YOLOv8. Labels from COCO or Open Image V7.
 * Search for images using its class. Labels from ImageNet.
 * Supported image formats: formats supported by OpenCV: bmp, dib, jpeg, jpg, jpe, jp2, png, webp, avif, pbm, pgm, ppm, pxm, pnm, pfm, sr, ras, tiff, tif, exr, hdr, pic.
