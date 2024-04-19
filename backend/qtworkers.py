@@ -2,13 +2,13 @@
 
 import hashlib
 import logging
-from multiprocessing import Pool
+import sys
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, QThread, Signal
 
 from backend.db_ops import DB
-from backend.image_process import read_img_warper
+from backend.image_process import ReadImgWorker
 
 
 class SearchWorker(QObject):
@@ -45,26 +45,25 @@ class IndexWorker(QObject):
         try:
             db_path = self.folder / "PicFinder.db"
             self.db = DB(db_path)
-
-            results = self.read_folder(self.folder, **self.kwargs)
-            self.db.add_history(
-                classification_model=self.kwargs["classification_model"],
-                classification_threshold=self.kwargs["classification_threshold"],
-                object_detection_model=self.kwargs["object_detection_model"],
-                object_detection_confidence=self.kwargs[
-                    "object_detection_conf_threshold"
-                ],
-                object_detection_iou=self.kwargs["object_detection_iou_threshold"],
-                OCR_model=self.kwargs["OCR_model"],
-                full_update=self.kwargs["FullUpdate"],
-            )
-            for result in results:
-                self.save_to_db(result)
-            self.db.close()
-            self.finished.emit()
+            self.read_folder(self.folder, **self.kwargs)
         except Exception as e:
             logging.error(e, exc_info=True)
             self.finished.emit()
+
+    def read_folder_results(self, results: list):
+        self.db.add_history(
+            classification_model=self.kwargs["classification_model"],
+            classification_threshold=self.kwargs["classification_threshold"],
+            object_detection_model=self.kwargs["object_detection_model"],
+            object_detection_confidence=self.kwargs["object_detection_conf_threshold"],
+            object_detection_iou=self.kwargs["object_detection_iou_threshold"],
+            OCR_model=self.kwargs["OCR_model"],
+            full_update=self.kwargs["FullUpdate"],
+        )
+        for result in results:
+            self.save_to_db(result)
+        self.db.close()
+        self.finished.emit()
 
     def save_to_db(self, result: dict):
 
@@ -111,17 +110,24 @@ class IndexWorker(QObject):
         # from generator to list
         file_list = list(file_list)
 
-        input_list = [(file, kwargs) for file in file_list]
+        logging.info(f"Indexing {len(file_list)} files")
 
-        logging.info(f"Indexing {len(input_list)} files")
+        self.read_img_worker = ReadImgWorker(file_list, **kwargs)
+        self.read_img_worker_thread = QThread()
+        self.read_img_worker.moveToThread(self.read_img_worker_thread)
+        self.read_img_worker_thread.started.connect(self.read_img_worker.run)
+        self.read_img_worker.progress.connect(self.progress_process)
+        self.read_img_worker.results.connect(self.read_folder_results)
+        self.read_img_worker.finished.connect(self.read_img_worker_thread.quit)
+        self.read_img_worker.finished.connect(self.read_img_worker.deleteLater)
+        self.read_img_worker_thread.finished.connect(
+            self.read_img_worker_thread.deleteLater
+        )
+        self.read_img_worker_thread.start()
 
-        with Pool(processes=4) as p:
-            total_files = len(input_list)
-            for i, result in enumerate(
-                p.imap(read_img_warper, input_list, chunksize=1)
-            ):
-                self.progress.emit(f"{i + 1}/{total_files}")
-                yield result
+    def progress_process(self, progress):
+        logging.debug(f"Progress: {progress}")
+        self.progress.emit(progress)
 
     def sync_file_list(self, folder_path: Path):
         supported_suffix = [
