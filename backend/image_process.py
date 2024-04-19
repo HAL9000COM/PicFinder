@@ -10,8 +10,8 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from rapidocr_onnxruntime import RapidOCR
 
-from backend.rapidOCR import process as rapidOCRprocess
 from backend.resources.label_list import coco, open_images_v7
 from backend.yolo import YOLOv8
 
@@ -115,8 +115,9 @@ def object_detection(
 def OCR(img, model: str):
     if model == "RapidOCR":
 
-        result = rapidOCRprocess(img)
+        engine = RapidOCR()
 
+        result, elapse = engine(img, use_det=True, use_cls=True, use_rec=True)
         if result is None or len(result) == 0:
             return None
 
