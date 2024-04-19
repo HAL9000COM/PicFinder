@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
-import io
 import logging
 import sys
 import time
-from multiprocessing import Pool
 from pathlib import Path
 
 import cv2
 import numpy as np
 from rapidocr_onnxruntime import RapidOCR
 
-from backend.resources.label_list import coco, open_images_v7
-from backend.yolo import YOLOv8
+from backend.resources.label_list import coco, image_net, open_images_v7
+from backend.yolo import YOLOv8, YOLOv8Cls
 
 is_nuitka = "__compiled__" in globals()
 
@@ -24,9 +22,6 @@ else:
 
 
 def classify(image: np.ndarray, model: str, threshold: float = 0.7):
-    from backend.resources.label_list import image_net
-    from backend.yolo.YOLO import YOLOv8Cls
-
     match model:
         case "YOLOv8n":
             YOLOv8_path = models_dir / "yolov8n-cls.onnx"
@@ -40,15 +35,46 @@ def classify(image: np.ndarray, model: str, threshold: float = 0.7):
             YOLOv8_path = models_dir / "yolov8x-cls.onnx"
         case _:
             return None
-    class_ids, confidence = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)(image)
+    yolo_cls = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)
+    class_ids, confidence = yolo_cls(image)
     if len(class_ids) == 0:
-        return None
+        return []
     class_names = [image_net[class_id][1] for class_id in class_ids]
     result = [
         (class_name, confidence[class_names.index(class_name)])
         for class_name in class_names
     ]
     return result
+
+
+def classify_batch(images: list[np.ndarray], model: str, threshold: float = 0.7):
+    match model:
+        case "YOLOv8n":
+            YOLOv8_path = models_dir / "yolov8n-cls.onnx"
+        case "YOLOv8s":
+            YOLOv8_path = models_dir / "yolov8s-cls.onnx"
+        case "YOLOv8m":
+            YOLOv8_path = models_dir / "yolov8m-cls.onnx"
+        case "YOLOv8l":
+            YOLOv8_path = models_dir / "yolov8l-cls.onnx"
+        case "YOLOv8x":
+            YOLOv8_path = models_dir / "yolov8x-cls.onnx"
+        case _:
+            return None
+    yolo_cls = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)
+    results = []
+    for image in images:
+        class_ids, confidence = yolo_cls(image)
+        if len(class_ids) == 0:
+            results.append([])
+            continue
+        class_names = [image_net[class_id][1] for class_id in class_ids]
+        result = [
+            (class_name, confidence[class_names.index(class_name)])
+            for class_name in class_names
+        ]
+        results.append(result)
+    return results
 
 
 def object_detection(
@@ -100,10 +126,10 @@ def object_detection(
 
         case _:
             return None
-
-    _, scores, class_ids = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)(image)
+    yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
+    _, scores, class_ids = yolo(image)
     if len(class_ids) == 0:
-        return None
+        return []
     class_names = [class_name_list[class_id] for class_id in class_ids]
     result = [
         (class_name, scores[class_names.index(class_name)])
@@ -112,20 +138,101 @@ def object_detection(
     return result
 
 
-def OCR(img, model: str):
+def object_detection_batch(
+    images: list[np.ndarray],
+    model: str,
+    conf_threshold: float = 0.7,
+    iou_threshold: float = 0.5,
+):
+    match model:
+        case "YOLOv8n COCO":
+            YOLOv8_path = models_dir / "yolov8n.onnx"
+            class_name_list = coco
+
+        case "YOLOv8s COCO":
+            YOLOv8_path = models_dir / "yolov8s.onnx"
+            class_name_list = coco
+
+        case "YOLOv8m COCO":
+            YOLOv8_path = models_dir / "yolov8m.onnx"
+            class_name_list = coco
+
+        case "YOLOv8l COCO":
+            YOLOv8_path = models_dir / "yolov8l.onnx"
+            class_name_list = coco
+
+        case "YOLOv8x COCO":
+            YOLOv8_path = models_dir / "yolov8x.onnx"
+            class_name_list = coco
+
+        case "YOLOv8n Open Images v7":
+            YOLOv8_path = models_dir / "yolov8n-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8s Open Images v7":
+            YOLOv8_path = models_dir / "yolov8s-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8m Open Images v7":
+            YOLOv8_path = models_dir / "yolov8m-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8l Open Images v7":
+            YOLOv8_path = models_dir / "yolov8l-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case "YOLOv8x Open Images v7":
+            YOLOv8_path = models_dir / "yolov8x-oiv7.onnx"
+            class_name_list = open_images_v7
+
+        case _:
+            return None
+    yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
+    results = []
+    for image in images:
+        _, scores, class_ids = yolo(image)
+        if len(class_ids) == 0:
+            results.append([])
+            continue
+        class_names = [class_name_list[class_id] for class_id in class_ids]
+        result = [
+            (class_name, scores[class_names.index(class_name)])
+            for class_name in class_names
+        ]
+        results.append(result)
+    return results
+
+
+def OCR(image: np.ndarray, model: str):
     if model == "RapidOCR":
 
         engine = RapidOCR()
 
-        result, elapse = engine(img, use_det=True, use_cls=True, use_rec=True)
+        result, elapse = engine(image, use_det=True, use_cls=True, use_rec=True)
         if result is None or len(result) == 0:
-            return None
+            return []
 
         res = [(i[1], i[2]) for i in result]
 
         return res
     else:
-        return None
+        return []
+
+
+def OCR_batch(images: list[np.ndarray], model: str):
+    if model == "RapidOCR":
+        results = []
+        engine = RapidOCR()
+        for image in images:
+            result, elapse = engine(image, use_det=True, use_cls=True, use_rec=True)
+            if result is None or len(result) == 0:
+                results.append([])
+                continue
+            res = [(i[1], i[2]) for i in result]
+            results.append(res)
+        return results
+    else:
+        return []
 
 
 # %%
@@ -149,6 +256,7 @@ def read_img(
         # read image with cv2
         try:
             img = cv2.imread(img_path.as_posix())
+            assert isinstance(img, np.ndarray)
         except Exception as e:
             return {"error": str(e)}
 
