@@ -595,7 +595,9 @@ class HashReadWorker(QObject):
                         hash = hashlib.md5(file.read()).hexdigest()
                     hash_list.append(hash)
                     img = cv2.imread(file_path.as_posix())
-                    assert isinstance(img, np.ndarray)
+                    if not isinstance(img, np.ndarray):
+                        img = np.zeros((100, 100, 3), dtype=np.uint8)
+                        logging.debug(f"Image:{file_path.as_posix()} read failed")
                     img_list.append(img)
                 except Exception as e:
                     logging.error(e, exc_info=True)
