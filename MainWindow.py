@@ -106,6 +106,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pass
         try:
             os.remove(self.db_path)
+        except AttributeError:
+            self.error_pop_up("Database not found")
+            return
         except Exception as e:
             logging.error(e, exc_info=True)
 
