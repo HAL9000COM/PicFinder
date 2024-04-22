@@ -35,7 +35,7 @@ def classify(image: np.ndarray, model: str, threshold: float = 0.7):
         case "YOLOv8x":
             YOLOv8_path = models_dir / "yolov8x-cls.onnx"
         case _:
-            return None
+            return []
     yolo_cls = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)
     class_ids, confidence = yolo_cls(image)
     if len(class_ids) == 0:
@@ -64,6 +64,7 @@ class ClassificationWorker(QObject):
         self.image_list = image_list
         self.model = classification_model
         self.threshold = classification_threshold
+        self.kwargs = kwargs
 
     def run(self):
         try:
@@ -77,6 +78,7 @@ class ClassificationWorker(QObject):
     def classify_batch(
         self, images: list[np.ndarray], model: str, threshold: float = 0.7
     ):
+        results = []
         match model:
             case "YOLOv8n":
                 YOLOv8_path = models_dir / "yolov8n-cls.onnx"
@@ -89,12 +91,14 @@ class ClassificationWorker(QObject):
             case "YOLOv8x":
                 YOLOv8_path = models_dir / "yolov8x-cls.onnx"
             case _:
-                return None
+                return []
+
         yolo_cls = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)
-        results = []
-        total_images = len(images)
+
+        total_images = self.kwargs["total_files"]
+        finished_files = self.kwargs["finished_files"]
         for i, image in enumerate(images):
-            progress = f"Classification progress: {i+1}/{total_images}"
+            progress = f"Classification progress: {i+1+finished_files}/{total_images}"
             self.progress.emit(progress)
 
             class_ids, confidence = yolo_cls(image)
@@ -159,7 +163,7 @@ def object_detection(
             class_name_list = open_images_v7
 
         case _:
-            return None
+            return []
     yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
     _, scores, class_ids = yolo(image)
     if len(class_ids) == 0:
@@ -190,6 +194,7 @@ class ObjectDetectionWorker(QObject):
         self.model = object_detection_model
         self.conf_threshold = object_detection_conf_threshold
         self.iou_threshold = object_detection_iou_threshold
+        self.kwargs = kwargs
 
     def run(self):
         try:
@@ -209,6 +214,7 @@ class ObjectDetectionWorker(QObject):
         conf_threshold: float = 0.7,
         iou_threshold: float = 0.5,
     ):
+        results = []
         match model:
             case "YOLOv8n COCO":
                 YOLOv8_path = models_dir / "yolov8n.onnx"
@@ -251,13 +257,15 @@ class ObjectDetectionWorker(QObject):
                 class_name_list = open_images_v7
 
             case _:
-                return None
+                return results
+
         yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
 
-        results = []
-        total_images = len(images)
+        total_images = self.kwargs["total_files"]
+        finished_files = self.kwargs["finished_files"]
+
         for i, image in enumerate(images):
-            progress = f"Object detection progress: {i+1}/{total_images}"
+            progress = f"Object detection progress: {i+1+finished_files}/{total_images}"
             self.progress.emit(progress)
 
             _, scores, class_ids = yolo(image)
@@ -299,6 +307,7 @@ class OCRWorker(QObject):
         super(OCRWorker, self).__init__()
         self.image_list = image_list
         self.model = OCR_model
+        self.kwargs = kwargs
 
     def run(self):
         try:
@@ -313,9 +322,10 @@ class OCRWorker(QObject):
         if model == "RapidOCR":
             results = []
             engine = RapidOCR()
-            total_images = len(images)
+            total_images = self.kwargs["total_files"]
+            finished_files = self.kwargs["finished_files"]
             for i, image in enumerate(images):
-                progress = f"OCR progress: {i+1}/{total_images}"
+                progress = f"OCR progress: {i+1+finished_files}/{total_images}"
                 self.progress.emit(progress)
                 result, elapse = engine(image, use_det=True, use_cls=True, use_rec=True)
                 if result is None or len(result) == 0:
@@ -415,6 +425,11 @@ class ReadImgWorker(QObject):
         self.kwargs = kwargs
         self.progress_dict = {}
         self.result_list = []
+        self.worker_flags = {}
+        self.worker_flags["hash"] = False
+        self.worker_flags["classification"] = False
+        self.worker_flags["object_detection"] = False
+        self.worker_flags["OCR"] = False
 
     def run(self):
         # start hashing and reading images
@@ -429,6 +444,7 @@ class ReadImgWorker(QObject):
         self.hash_worker.img_result.connect(self.img_result)
         self.hash_worker.finished.connect(self.hash_finished)
         self.hash_worker.progress.connect(self.progress_process)
+        self.worker_flags["hash"] = True
         self.hash_worker_thread.start()
 
     def hash_result(self, hash: list[str]):
@@ -442,11 +458,15 @@ class ReadImgWorker(QObject):
         self.hash_worker_thread.quit()
         self.hash_worker_thread.wait()
         self.hash_worker_thread.deleteLater()
+        self.worker_flags["hash"] = False
 
         # start reading images
-        self.start_classify_read()
-        self.start_obj_read()
-        self.start_OCR_read()
+        if self.kwargs["classification_model"] != "None":
+            self.start_classify_read()
+        if self.kwargs["object_detection_model"] != "None":
+            self.start_obj_read()
+        if self.kwargs["OCR_model"] != "None":
+            self.start_OCR_read()
 
     def start_classify_read(self):
         self.classify_worker = ClassificationWorker(self.imgs, **self.kwargs)
@@ -456,7 +476,7 @@ class ReadImgWorker(QObject):
         self.classify_worker.result.connect(self.classify_result)
         self.classify_worker.finished.connect(self.classify_finished)
         self.classify_worker.progress.connect(self.progress_process)
-
+        self.worker_flags["classification"] = True
         self.classify_worker_thread.start()
 
     def start_obj_read(self):
@@ -467,7 +487,7 @@ class ReadImgWorker(QObject):
         self.obj_worker.result.connect(self.obj_result)
         self.obj_worker.finished.connect(self.obj_finished)
         self.obj_worker.progress.connect(self.progress_process)
-
+        self.worker_flags["object_detection"] = True
         self.obj_worker_thread.start()
 
     def start_OCR_read(self):
@@ -478,32 +498,35 @@ class ReadImgWorker(QObject):
         self.OCR_worker.result.connect(self.OCR_result)
         self.OCR_worker.finished.connect(self.OCR_finished)
         self.OCR_worker.progress.connect(self.progress_process)
-
+        self.worker_flags["OCR"] = True
         self.OCR_worker_thread.start()
 
     def classify_finished(self):
         self.classify_worker_thread.quit()
         self.classify_worker_thread.wait()
         logging.debug("Classification finished")
+        self.worker_flags["classification"] = False
         self.check_worker_finished()
 
     def obj_finished(self):
         self.obj_worker_thread.quit()
         self.obj_worker_thread.wait()
         logging.debug("Object detection finished")
+        self.worker_flags["object_detection"] = False
         self.check_worker_finished()
 
     def OCR_finished(self):
         self.OCR_worker_thread.quit()
         self.OCR_worker_thread.wait()
         logging.debug("OCR finished")
+        self.worker_flags["OCR"] = False
         self.check_worker_finished()
 
     def check_worker_finished(self):
         if (
-            self.classify_worker_thread.isFinished()
-            and self.obj_worker_thread.isFinished()
-            and self.OCR_worker_thread.isFinished()
+            self.worker_flags["classification"] == False
+            and self.worker_flags["object_detection"] == False
+            and self.worker_flags["OCR"] == False
         ):
             self.result_emit()
 
@@ -513,9 +536,18 @@ class ReadImgWorker(QObject):
             result_dict = {}
             result_dict["hash"] = self.hashes[i]
             result_dict["path"] = img_path
-            result_dict["classification"] = self.classify_res[i]
-            result_dict["object_detection"] = self.obj_res[i]
-            result_dict["OCR"] = self.OCR_res[i]
+            try:
+                result_dict["classification"] = self.classify_res[i]
+            except AttributeError:
+                result_dict["classification"] = []
+            try:
+                result_dict["object_detection"] = self.obj_res[i]
+            except AttributeError:
+                result_dict["object_detection"] = []
+            try:
+                result_dict["OCR"] = self.OCR_res[i]
+            except AttributeError:
+                result_dict["OCR"] = []
             self.result_list.append(result_dict)
 
         self.results.emit(self.result_list)

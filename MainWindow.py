@@ -131,6 +131,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.settings["OCR_model"] = settings.value("OCR_model", "RapidOCR")
         self.settings["FullUpdate"] = settings.value("FullUpdate", False, type=bool)
+        self.settings["batch_size"] = int(settings.value("batch_size", 100))
 
     def error_pop_up(self, message):
         msg = QMessageBox()

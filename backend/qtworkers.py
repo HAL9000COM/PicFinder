@@ -41,29 +41,30 @@ class IndexWorker(QObject):
         self.folder = folder_path
         self.kwargs = kwargs
 
+        self.batch_size = kwargs["batch_size"]
+        self.index = 0
+
     def run(self):
         try:
             db_path = self.folder / "PicFinder.db"
             self.db = DB(db_path)
-            self.read_folder(self.folder, **self.kwargs)
+
+            self.db.add_history(
+                classification_model=self.kwargs["classification_model"],
+                classification_threshold=self.kwargs["classification_threshold"],
+                object_detection_model=self.kwargs["object_detection_model"],
+                object_detection_confidence=self.kwargs[
+                    "object_detection_conf_threshold"
+                ],
+                object_detection_iou=self.kwargs["object_detection_iou_threshold"],
+                OCR_model=self.kwargs["OCR_model"],
+                full_update=self.kwargs["FullUpdate"],
+            )
+
+            self.read_folder(self.folder)
         except Exception as e:
             logging.error(e, exc_info=True)
             self.finished.emit()
-
-    def read_folder_results(self, results: list):
-        self.db.add_history(
-            classification_model=self.kwargs["classification_model"],
-            classification_threshold=self.kwargs["classification_threshold"],
-            object_detection_model=self.kwargs["object_detection_model"],
-            object_detection_confidence=self.kwargs["object_detection_conf_threshold"],
-            object_detection_iou=self.kwargs["object_detection_iou_threshold"],
-            OCR_model=self.kwargs["OCR_model"],
-            full_update=self.kwargs["FullUpdate"],
-        )
-        for result in results:
-            self.save_to_db(result)
-        self.db.close()
-        self.finished.emit()
 
     def save_to_db(self, result: dict):
 
@@ -103,14 +104,40 @@ class IndexWorker(QObject):
             ocr_confidence_avg,
         )
 
-    def read_folder(self, folder_path: Path, **kwargs):
+    def read_folder(self, folder_path: Path):
 
         self.remove_deleted_files(folder_path)
         file_list = self.sync_file_list(folder_path)
         # from generator to list
-        file_list = list(file_list)
+        self.file_list = list(file_list)
+        self.total_files = len(self.file_list)
+        self.kwargs["total_files"] = self.total_files
 
-        logging.info(f"Indexing {len(file_list)} files")
+        logging.info(f"Indexing {self.total_files} files")
+
+        self.kwargs["finished_files"] = self.index
+
+        self.run_img_worker(
+            self.file_list[self.index : self.index + self.batch_size], **self.kwargs
+        )
+
+    def read_folder_results(self, results: list):
+        for result in results:
+            self.save_to_db(result)
+
+    def img_worker_finished(self):
+        self.read_img_worker_thread.quit()
+        self.read_img_worker_thread.wait()
+
+        if self.index < self.total_files:
+            self.index += self.batch_size
+            self.kwargs["finished_files"] = self.index
+            batch = self.file_list[self.index : self.index + self.batch_size]
+            self.run_img_worker(batch, **self.kwargs)
+        else:
+            self.full_finished()
+
+    def run_img_worker(self, file_list: list, **kwargs):
 
         self.read_img_worker = ReadImgWorker(file_list, **kwargs)
         self.read_img_worker_thread = QThread()
@@ -118,12 +145,17 @@ class IndexWorker(QObject):
         self.read_img_worker_thread.started.connect(self.read_img_worker.run)
         self.read_img_worker.progress.connect(self.progress_process)
         self.read_img_worker.results.connect(self.read_folder_results)
+        self.read_img_worker.finished.connect(self.img_worker_finished)
         self.read_img_worker.finished.connect(self.read_img_worker_thread.quit)
         self.read_img_worker.finished.connect(self.read_img_worker.deleteLater)
         self.read_img_worker_thread.finished.connect(
             self.read_img_worker_thread.deleteLater
         )
         self.read_img_worker_thread.start()
+
+    def full_finished(self):
+        self.db.close()
+        self.finished.emit()
 
     def progress_process(self, progress):
         logging.debug(f"Progress: {progress}")
