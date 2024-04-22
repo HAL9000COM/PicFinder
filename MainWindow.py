@@ -141,6 +141,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         msg.setIcon(QMessageBox.Critical)
         msg.setText(message)
         msg.setWindowTitle("Error")
+        msg.setWindowModality(Qt.NonModal)
         msg.exec_()
 
     def open_settings(self):
@@ -317,6 +318,8 @@ class AboutWindow(QWidget):
         super(AboutWindow, self).__init__()
         self.setWindowTitle("About")
         self.setWindowIcon(QIcon("icon.ico"))
+        self.setWindowModality(Qt.NonModal)
+
         self.label_1 = QLabel("PicFinder Version: 0.1.0\n")
         self.label_2 = QLabel("Author: HAL9000COM\n")
         self.label_3 = QLabel(
