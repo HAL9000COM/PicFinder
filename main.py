@@ -3,14 +3,17 @@
 
 import os
 import sys
+import tempfile
+
+temp_dir = tempfile.gettempdir()
 
 is_nuitka = "__compiled__" in globals()
 if sys.stdout is None or is_nuitka:
     # sys.stdout = open(os.devnull, "w")
-    sys.stdout = open("stdout.log", "w")
+    sys.stdout = open(os.path.join(temp_dir, "stdout.log"), "w")
 if sys.stderr is None or is_nuitka:
     # sys.stderr = open(os.devnull, "w")
-    sys.stderr = open("stderr.log", "w")
+    sys.stderr = open(os.path.join(temp_dir, "stderr.log"), "w")
 import logging
 from multiprocessing import freeze_support
 
