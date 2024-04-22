@@ -78,7 +78,7 @@ class ClassificationWorker(QObject):
     def classify_batch(
         self, images: list[np.ndarray], model: str, threshold: float = 0.7
     ):
-        results = []
+
         match model:
             case "YOLOv8n":
                 YOLOv8_path = models_dir / "yolov8n-cls.onnx"
@@ -91,12 +91,14 @@ class ClassificationWorker(QObject):
             case "YOLOv8x":
                 YOLOv8_path = models_dir / "yolov8x-cls.onnx"
             case _:
-                return []
+                return [[] for _ in images]
 
         yolo_cls = YOLOv8Cls(YOLOv8_path, conf_thres=threshold)
 
         total_images = self.kwargs["total_files"]
         finished_files = self.kwargs["finished_files"]
+
+        results = []
         for i, image in enumerate(images):
             progress = f"Classification progress: {i+1+finished_files}/{total_images}"
             self.progress.emit(progress)
@@ -214,7 +216,7 @@ class ObjectDetectionWorker(QObject):
         conf_threshold: float = 0.7,
         iou_threshold: float = 0.5,
     ):
-        results = []
+
         match model:
             case "YOLOv8n COCO":
                 YOLOv8_path = models_dir / "yolov8n.onnx"
@@ -257,8 +259,8 @@ class ObjectDetectionWorker(QObject):
                 class_name_list = open_images_v7
 
             case _:
-                return results
-
+                return [[] for _ in images]
+        results = []
         yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
 
         total_images = self.kwargs["total_files"]
@@ -320,10 +322,12 @@ class OCRWorker(QObject):
 
     def OCR_batch(self, images: list[np.ndarray], model: str):
         if model == "RapidOCR":
-            results = []
             engine = RapidOCR()
+
             total_images = self.kwargs["total_files"]
             finished_files = self.kwargs["finished_files"]
+
+            results = []
             for i, image in enumerate(images):
                 progress = f"OCR progress: {i+1+finished_files}/{total_images}"
                 self.progress.emit(progress)
@@ -335,7 +339,7 @@ class OCRWorker(QObject):
                 results.append(res)
             return results
         else:
-            return []
+            return [[] for _ in images]
 
 
 # %%
@@ -536,18 +540,40 @@ class ReadImgWorker(QObject):
             result_dict = {}
             result_dict["hash"] = self.hashes[i]
             result_dict["path"] = img_path
+
             try:
                 result_dict["classification"] = self.classify_res[i]
             except AttributeError:
                 result_dict["classification"] = []
+            except IndexError:
+                result_dict["classification"] = []
+                logging.error(
+                    f"Classification failed for image:{img_path.as_posix()}",
+                    exc_info=True,
+                )
+
             try:
                 result_dict["object_detection"] = self.obj_res[i]
             except AttributeError:
                 result_dict["object_detection"] = []
+            except IndexError:
+                result_dict["object_detection"] = []
+                logging.error(
+                    f"Object Detection failed for image:{img_path.as_posix()}",
+                    exc_info=True,
+                )
+
             try:
                 result_dict["OCR"] = self.OCR_res[i]
             except AttributeError:
                 result_dict["OCR"] = []
+            except IndexError:
+                result_dict["OCR"] = []
+                logging.error(
+                    f"OCR failed for image:{img_path.as_posix()}",
+                    exc_info=True,
+                )
+
             self.result_list.append(result_dict)
 
         self.results.emit(self.result_list)
