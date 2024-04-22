@@ -592,12 +592,26 @@ class HashReadWorker(QObject):
                 self.progress.emit(i + 1)
                 try:
                     with open(file_path, "rb") as file:
-                        hash = hashlib.md5(file.read()).hexdigest()
+                        file_bytes = file.read()
+                        hash = hashlib.md5(file_bytes).hexdigest()
+                        try:
+                            img = cv2.imdecode(
+                                np.frombuffer(file_bytes, np.uint8),
+                                cv2.IMREAD_UNCHANGED,
+                            )
+                            if not isinstance(img, np.ndarray):
+                                img = np.zeros((100, 100, 3), dtype=np.uint8)
+                                logging.error(
+                                    f"Image:{file_path.as_posix()}, cv2 read failed",
+                                    exc_info=True,
+                                )
+                        except Exception as e:
+                            img = np.zeros((100, 100, 3), dtype=np.uint8)
+                            logging.error(
+                                f"Image:{file_path.as_posix()}, cv2 read failed",
+                                exc_info=True,
+                            )
                     hash_list.append(hash)
-                    img = cv2.imread(file_path.as_posix())
-                    if not isinstance(img, np.ndarray):
-                        img = np.zeros((100, 100, 3), dtype=np.uint8)
-                        logging.debug(f"Image:{file_path.as_posix()} read failed")
                     img_list.append(img)
                 except Exception as e:
                     logging.error(e, exc_info=True)
