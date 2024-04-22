@@ -24,6 +24,9 @@ class Ui_Settings(object):
         if not Settings.objectName():
             Settings.setObjectName(u"Settings")
         Settings.resize(400, 366)
+        icon = QIcon()
+        icon.addFile(u"icon.ico", QSize(), QIcon.Normal, QIcon.Off)
+        Settings.setWindowIcon(icon)
         self.verticalLayout_4 = QVBoxLayout(Settings)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.groupBox = QGroupBox(Settings)

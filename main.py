@@ -17,6 +17,7 @@ if sys.stderr is None or is_nuitka:
 import logging
 from multiprocessing import freeze_support
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from MainWindow import MainWindow
@@ -34,6 +35,7 @@ if __name__ == "__main__":
     if app is None:
         app = QApplication(sys.argv)
     window = MainWindow()
+    window.setWindowIcon(QIcon("icon.ico"))
     window.show()
     code = app.exec()
     os._exit(code)
