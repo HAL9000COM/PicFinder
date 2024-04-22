@@ -4,10 +4,10 @@ A simple windows application to search for images in a directory.
 
 ## Features
 
-* Search for text in images using OCR. Tested with English, Traditional Chinese, Simplified Chinese, Japanese.
+* Search for text in images using OCR. Tested with English, Traditional Chinese, Simplified Chinese.
 * Search for objects in images using YOLOv8. Labels from COCO or Open Image V7.
 * Search for images using its class. Labels from ImageNet.
-* Supported image formats: bmp, jpg, jpeg, j2k, jp2, jpx, png, gif, tiff, tif, webp, ico.
+* Supported image formats: formats supported by OpenCV: bmp, dib, jpeg, jpg, jpe, jp2, png, webp, avif, pbm, pgm, ppm, pxm, pnm, pfm, sr, ras, tiff, tif, exr, hdr, pic.
 
 ## Usage
 
@@ -38,7 +38,8 @@ If you clone the repository:
 2. Using Nuitka
 
     ```bash
-    python -m nuitka main.py --standalone --enable-plugin=pyside6  --include-data-dir=./backend/libsimple-windows-x64=lib/backend/libsimple-windows-x64 --include-data-files=./backend/libsimple-windows-x64/simple.dll=lib/backend/libsimple-windows-x64/simple.dll --include-data-dir=./models=models --disable-console
+    python -m nuitka main.py --standalone --enable-plugin=pyside6  --include-data-dir=./backend/libsimple-windows-x64=lib/backend/libsimple-windows-x64 --include-data-files=./backend/libsimple-windows-x64/simple.dll=lib/backend/libsimple-windows-x64/simple.dll --include-data-dir=./models=models --include-data-dir=./.venv/Lib/site-packages/rapidocr_onnxruntime=rapidocr_onnxruntime --disable-console
+
     ```
 
 ## Details

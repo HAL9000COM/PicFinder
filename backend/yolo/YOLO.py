@@ -2,9 +2,9 @@
 
 import time
 
+import cv2
 import numpy as np
 import onnxruntime
-from PIL import Image
 
 from .utils import multiclass_nms, xywh2xyxy
 
@@ -31,20 +31,19 @@ class YOLOv8Base:
         model_outputs = self.session.get_outputs()
         self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
 
-    def prepare_input(self, image: Image.Image):
-        self.img_height, self.img_width = image.size
+    def prepare_input(self, image: np.ndarray):
+        self.img_height, self.img_width = image.shape[:2]
 
         # Resize input image
-        input_img = image.resize((self.input_width, self.input_height))
+        input_img = cv2.resize(image, (self.input_width, self.input_height))
 
-        # Scale input pixel values to 0 to 1
-        input_img = np.array(input_img) / 255.0
         # Convert the image to RGB if it is in grayscale
         if len(input_img.shape) == 2:
-            input_img = np.stack((input_img,) * 3, axis=-1)
-        # Remove the alpha channel if it exists
-        elif input_img.shape[2] == 4:
-            input_img = input_img[:, :, :3]
+            input_img = cv2.cvtColor(input_img, cv2.COLOR_GRAY2RGB)
+        else:
+            input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB)
+        # Scale input pixel values to 0 to 1
+        input_img = input_img / 255.0
         input_img = input_img.transpose(2, 0, 1)
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
@@ -82,12 +81,12 @@ class YOLOv8(YOLOv8Base):
     def __call__(self, image):
         return self.detect_objects(image)
 
-    def detect_objects(self, image: Image.Image):
+    def detect_objects(self, image: np.ndarray):
         """
         Detects objects in the given image using the YOLOv8 model.
 
         Args:
-            image (PIL.Image.Image): The input image.
+            image: The input image.
 
         Returns:
             boxes (numpy.ndarray): The bounding boxes of the detected objects.
@@ -173,12 +172,12 @@ class YOLOv8Cls(YOLOv8Base):
     def __call__(self, image):
         return self.predict(image)
 
-    def predict(self, image: Image.Image):
+    def predict(self, image: np.ndarray):
         """
         Detects objects in the given image using the YOLOv8 model.
 
         Args:
-            image (PIL.Image.Image): The input image.
+            image (PIL.np.ndarray): The input image.
 
         Returns:
         class_ids: numpy.ndarray: The predicted class IDs of the detected objects.

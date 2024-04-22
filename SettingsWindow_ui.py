@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'SettingsWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.2
+## Created by: Qt User Interface Compiler version 6.7.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -17,13 +17,16 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
     QGroupBox, QHBoxLayout, QLabel, QPushButton,
-    QSizePolicy, QVBoxLayout, QWidget)
+    QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
 
 class Ui_Settings(object):
     def setupUi(self, Settings):
         if not Settings.objectName():
             Settings.setObjectName(u"Settings")
         Settings.resize(400, 366)
+        icon = QIcon()
+        icon.addFile(u"icon.ico", QSize(), QIcon.Normal, QIcon.Off)
+        Settings.setWindowIcon(icon)
         self.verticalLayout_4 = QVBoxLayout(Settings)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.groupBox = QGroupBox(Settings)
@@ -181,10 +184,33 @@ class Ui_Settings(object):
         self.groupBox_5.setObjectName(u"groupBox_5")
         self.verticalLayout_5 = QVBoxLayout(self.groupBox_5)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.checkBox_update = QCheckBox(self.groupBox_5)
         self.checkBox_update.setObjectName(u"checkBox_update")
 
-        self.verticalLayout_5.addWidget(self.checkBox_update)
+        self.horizontalLayout_10.addWidget(self.checkBox_update)
+
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.label_7 = QLabel(self.groupBox_5)
+        self.label_7.setObjectName(u"label_7")
+
+        self.horizontalLayout.addWidget(self.label_7)
+
+        self.spinBox_batch_size = QSpinBox(self.groupBox_5)
+        self.spinBox_batch_size.setObjectName(u"spinBox_batch_size")
+        self.spinBox_batch_size.setMinimum(1)
+        self.spinBox_batch_size.setMaximum(10000)
+        self.spinBox_batch_size.setValue(100)
+
+        self.horizontalLayout.addWidget(self.spinBox_batch_size)
+
+
+        self.horizontalLayout_10.addLayout(self.horizontalLayout)
+
+
+        self.verticalLayout_5.addLayout(self.horizontalLayout_10)
 
 
         self.verticalLayout_4.addWidget(self.groupBox_5)
@@ -218,13 +244,13 @@ class Ui_Settings(object):
         self.comboBox_object_detection_model.setItemText(0, QCoreApplication.translate("Settings", u"YOLOv8n COCO", None))
         self.comboBox_object_detection_model.setItemText(1, QCoreApplication.translate("Settings", u"YOLOv8s COCO", None))
         self.comboBox_object_detection_model.setItemText(2, QCoreApplication.translate("Settings", u"YOLOv8m COCO", None))
-        self.comboBox_object_detection_model.setItemText(3, QCoreApplication.translate("Settings", u"YOLOv8l  COCO", None))
-        self.comboBox_object_detection_model.setItemText(4, QCoreApplication.translate("Settings", u"YOLOv8x  COCO", None))
-        self.comboBox_object_detection_model.setItemText(5, QCoreApplication.translate("Settings", u"YOLOv8n Open Image v7", None))
-        self.comboBox_object_detection_model.setItemText(6, QCoreApplication.translate("Settings", u"YOLOv8s Open Image v7", None))
-        self.comboBox_object_detection_model.setItemText(7, QCoreApplication.translate("Settings", u"YOLOv8m Open Image v7", None))
-        self.comboBox_object_detection_model.setItemText(8, QCoreApplication.translate("Settings", u"YOLOv8l Open Image v7", None))
-        self.comboBox_object_detection_model.setItemText(9, QCoreApplication.translate("Settings", u"YOLOv8x Open Image v7", None))
+        self.comboBox_object_detection_model.setItemText(3, QCoreApplication.translate("Settings", u"YOLOv8l COCO", None))
+        self.comboBox_object_detection_model.setItemText(4, QCoreApplication.translate("Settings", u"YOLOv8x COCO", None))
+        self.comboBox_object_detection_model.setItemText(5, QCoreApplication.translate("Settings", u"YOLOv8n Open Images v7", None))
+        self.comboBox_object_detection_model.setItemText(6, QCoreApplication.translate("Settings", u"YOLOv8s Open Images v7", None))
+        self.comboBox_object_detection_model.setItemText(7, QCoreApplication.translate("Settings", u"YOLOv8m Open Images v7", None))
+        self.comboBox_object_detection_model.setItemText(8, QCoreApplication.translate("Settings", u"YOLOv8l Open Images v7", None))
+        self.comboBox_object_detection_model.setItemText(9, QCoreApplication.translate("Settings", u"YOLOv8x Open Images v7", None))
         self.comboBox_object_detection_model.setItemText(10, QCoreApplication.translate("Settings", u"None", None))
 
         self.label_5.setText(QCoreApplication.translate("Settings", u"Confidence:", None))
@@ -236,6 +262,7 @@ class Ui_Settings(object):
 
         self.groupBox_5.setTitle(QCoreApplication.translate("Settings", u"Index Setting", None))
         self.checkBox_update.setText(QCoreApplication.translate("Settings", u"Fully Update Database", None))
+        self.label_7.setText(QCoreApplication.translate("Settings", u"Batch Size:", None))
         self.pushButton_save.setText(QCoreApplication.translate("Settings", u"Save", None))
     # retranslateUi
 

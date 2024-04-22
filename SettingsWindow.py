@@ -36,6 +36,7 @@ class SettingsWindow(QWidget, Ui_Settings):
         self.checkBox_update.setChecked(
             self.settings.value("FullUpdate", False, type=bool)
         )
+        self.spinBox_batch_size.setValue(int(self.settings.value("batch_size", 100)))
 
     def save_settings(self):
         self.settings.setValue(
@@ -59,4 +60,5 @@ class SettingsWindow(QWidget, Ui_Settings):
         )
         self.settings.setValue("OCR_model", self.comboBox_OCR_model.currentText())
         self.settings.setValue("FullUpdate", self.checkBox_update.isChecked())
+        self.settings.setValue("batch_size", self.spinBox_batch_size.value())
         self.close()
