@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 
-
 import logging
 import os
 import sys
 from pathlib import Path
 
 import onnxruntime
-from PySide6.QtCore import QObject, QSettings, QSize, Qt, QThread, QUrl, Signal
-from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtCore import QObject, QSettings, Qt, QThread, Signal
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
     QMainWindow,
     QMessageBox,
     QVBoxLayout,
@@ -22,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from backend.qtworkers import IndexWorker, SearchWorker
 from MainWindow_ui import Ui_MainWindow
+from ResultList import ResultListWidget
 from SettingsWindow import SettingsWindow
 
 
@@ -71,87 +69,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.lineEdit_search.returnPressed.connect(self.search)
 
-        self.listWidget_search_result.setViewMode(QListWidget.IconMode)
-        self.listWidget_search_result.setIconSize(QSize(300, 300))
-        self.listWidget_search_result.setResizeMode(QListWidget.Adjust)
-        self.listWidget_search_result.setWordWrap(True)
-        self.listWidget_search_result.setFlow(QListWidget.LeftToRight)
-        self.listWidget_search_result.setWrapping(True)
-        self.listWidget_search_result.setGridSize(QSize(320, 320))
-        self.listWidget_search_result.setSpacing(20)
-        self.listWidget_search_result.setUniformItemSizes(False)
-        self.listWidget_search_result.setTextElideMode(Qt.ElideMiddle)
-        self.listWidget_search_result.setWordWrap(True)
-        self.listWidget_search_result.itemDoubleClicked.connect(self.open_file)
-
         self.folder_path = Path()
+
+        self.result_list_widget = ResultListWidget(self.folder_path, [])
+        # add the list widget to the frame
+        self.list_layout = QVBoxLayout()
+        self.list_layout.addWidget(self.result_list_widget)
+        self.frame.setLayout(self.list_layout)
 
         self.pushButton_index.setEnabled(False)
         self.pushButton_search.setEnabled(False)
 
         self.update_settings()
-
-    def clear_db(self):
-        try:
-            if self.index_worker_thread.isRunning():
-                logging.error("Indexing in progress, please wait")
-                return
-        except:
-            pass
-        try:
-            if self.search_worker_thread.isRunning():
-                logging.error("Search in progress, please wait")
-                return
-        except:
-            pass
-        try:
-            os.remove(self.db_path)
-        except AttributeError:
-            self.error_pop_up("Database not found")
-            return
-        except Exception as e:
-            logging.error(e, exc_info=True)
-
-        self.statusbar.showMessage("Database Cleared")
-
-    def update_settings(self):
-        settings = QSettings("HAL9000COM", "PicFinder")
-        self.settings = {}
-        self.settings["classification_model"] = settings.value(
-            "classification_model", "YOLOv8n"
-        )
-        self.settings["classification_threshold"] = float(
-            settings.value("classification_threshold", 0.7)
-        )
-        self.settings["object_detection_model"] = settings.value(
-            "object_detection_model", "YOLOv8n COCO"
-        )
-        self.settings["object_detection_conf_threshold"] = float(
-            settings.value("object_detection_conf_threshold", 0.7)
-        )
-        self.settings["object_detection_iou_threshold"] = float(
-            settings.value("object_detection_iou_threshold", 0.5)
-        )
-        self.settings["OCR_model"] = settings.value("OCR_model", "RapidOCR")
-        self.settings["FullUpdate"] = settings.value("FullUpdate", False, type=bool)
-        self.settings["batch_size"] = int(settings.value("batch_size", 100))
-
-    def error_pop_up(self, message):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Critical)
-        msg.setText(message)
-        msg.setWindowTitle("Error")
-        msg.setWindowModality(Qt.NonModal)
-        msg.exec_()
-
-    def open_settings(self):
-        self.settings_window = SettingsWindow()
-        self.settings_window.setWindowTitle("Settings")
-        self.settings_window.show()
-
-    def open_about(self):
-        self.about_window = AboutWindow()
-        self.about_window.show()
 
     def lineEdit_folder_textChanged(self, text):
         if text:
@@ -160,7 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_index.setEnabled(False)
         self.folder_path = Path(text)
         self.db_path = self.folder_path / "PicFinder.db"
-        self.listWidget_search_result.clear()
+        self.result_list_widget.update_folder(self.folder_path)
         if self.db_exists_check():
             self.statusbar.showMessage(
                 f"Folder: {self.folder_path.as_posix()} , Index Found"
@@ -198,9 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pass
         self.update_settings()
         if self.folder_path.exists() and self.folder_path.is_dir():
-
-            self.listWidget_search_result.clear()
-
+            self.result_list_widget.update_folder(self.folder_path)
             self.index_worker = IndexWorker(self.folder_path, **self.settings)
             self.index_worker_thread = QThread()
             self.index_worker.moveToThread(self.index_worker_thread)
@@ -257,41 +184,74 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.statusbar.showMessage("Database not found")
 
     def search_finished(self):
-        self.statusbar.showMessage("Search Finished")
+        # self.statusbar.showMessage("Search Finished")
+        pass
 
     def search_result(self, result):
-        self.populate_list(result)
+        self.statusbar.showMessage(f"Search Finished, {len(result)} results Found.")
+        self.result_list_widget.update_results(result)
 
-    def populate_list(self, result):
-        self.listWidget_search_result.clear()
-        for file in result:
-            file_path = self.folder_path / Path(file[2])
-            file_classification = file[3]
-            file_classification_confidence = file[4]
-            file_object = file[5]
-            file_object_confidence = file[6]
-            file_ocr = file[7]
-            file_ocr_confidence = file[8]
+    def open_settings(self):
+        self.settings_window = SettingsWindow()
+        self.settings_window.setWindowTitle("Settings")
+        self.settings_window.show()
 
-            file_info = (
-                f"File: {file_path.as_posix()}\n"
-                f"Classification: {file_classification} ({file_classification_confidence:.2f})\n"
-                f"Object: {file_object} ({file_object_confidence:.2f})\n"
-                f"OCR: {file_ocr} ({file_ocr_confidence:.2f})"
-            )
+    def update_settings(self):
+        settings = QSettings("HAL9000COM", "PicFinder")
+        self.settings = {}
+        self.settings["classification_model"] = settings.value(
+            "classification_model", "YOLOv8n"
+        )
+        self.settings["classification_threshold"] = float(
+            settings.value("classification_threshold", 0.7)
+        )
+        self.settings["object_detection_model"] = settings.value(
+            "object_detection_model", "YOLOv8n COCO"
+        )
+        self.settings["object_detection_conf_threshold"] = float(
+            settings.value("object_detection_conf_threshold", 0.7)
+        )
+        self.settings["object_detection_iou_threshold"] = float(
+            settings.value("object_detection_iou_threshold", 0.5)
+        )
+        self.settings["OCR_model"] = settings.value("OCR_model", "RapidOCR")
+        self.settings["FullUpdate"] = settings.value("FullUpdate", False, type=bool)
+        self.settings["batch_size"] = int(settings.value("batch_size", 100))
 
-            item = QListWidgetItem()
-            item.setIcon(QIcon(file_path.as_posix()))
-            item.setText(file[2])
+    def open_about(self):
+        self.about_window = AboutWindow()
+        self.about_window.show()
 
-            item.setToolTip(file_info)
+    def clear_db(self):
+        try:
+            if self.index_worker_thread.isRunning():
+                logging.error("Indexing in progress, please wait")
+                return
+        except:
+            pass
+        try:
+            if self.search_worker_thread.isRunning():
+                logging.error("Search in progress, please wait")
+                return
+        except:
+            pass
+        try:
+            os.remove(self.db_path)
+        except AttributeError:
+            self.error_pop_up("Database not found")
+            return
+        except Exception as e:
+            logging.error(e, exc_info=True)
 
-            self.listWidget_search_result.addItem(item)
+        self.statusbar.showMessage("Database Cleared")
 
-    def open_file(self, item: QListWidgetItem):
-        file_path = self.folder_path / Path(item.text())
-        url = QUrl.fromLocalFile(file_path)
-        QDesktopServices.openUrl(url)
+    def error_pop_up(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(message)
+        msg.setWindowTitle("Error")
+        msg.setWindowModality(Qt.NonModal)
+        msg.exec_()
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
