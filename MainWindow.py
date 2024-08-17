@@ -280,7 +280,7 @@ class AboutWindow(QWidget):
         self.setWindowIcon(QIcon("icon.ico"))
         self.setWindowModality(Qt.NonModal)
 
-        self.label_1 = QLabel("PicFinder Version: 0.1.0\n")
+        self.label_1 = QLabel("PicFinder Version: 0.2.0\n")
         self.label_2 = QLabel("Author: HAL9000COM\n")
         self.label_3 = QLabel(
             "For license and source code, please visit:\n"
