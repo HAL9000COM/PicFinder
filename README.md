@@ -16,6 +16,8 @@ A simple windows application to search for images in a directory.
 3. Select the directory to Index using models (only required once)
 4. Search
 
+![Demo](res/demo.gif)
+
 If you clone the repository:
 
 1. Install the required packages using Poetry.
