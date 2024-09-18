@@ -56,6 +56,10 @@ class ResultListWidget(QWidget, Ui_ResultListWidget):
         self.show_page()
 
     def show_page(self):
+        if self.page_count == 0:
+            self.label_page_count.setText("0/0")
+            self.listWidget_results.clear()
+            return
         self.label_page_count.setText(f"{self.page_index+1}/{self.page_count}")
         self.populate_list(self.paged_result_list[self.page_index])
 
