@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "picfinder"
-version = "0.1.0"
+version = "0.3.0"
 description = "A simple windows application to search for images in a directory."
 authors = ["HAL9000COM <f1226942353@icloud.com>"]
 readme = "README.md"
