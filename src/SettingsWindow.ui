@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>366</height>
+    <width>500</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,31 +41,6 @@
            </item>
            <item>
             <widget class="QComboBox" name="comboBox_classification_model">
-             <item>
-              <property name="text">
-               <string>YOLOv8n</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8s</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8m</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8l</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8x</string>
-              </property>
-             </item>
              <item>
               <property name="text">
                <string>None</string>
@@ -121,59 +96,37 @@
             <widget class="QComboBox" name="comboBox_object_detection_model">
              <item>
               <property name="text">
-               <string>YOLOv8n COCO</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8s COCO</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8m COCO</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8l COCO</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8x COCO</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8n Open Images v7</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8s Open Images v7</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8m Open Images v7</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8l Open Images v7</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>YOLOv8x Open Images v7</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
                <string>None</string>
               </property>
              </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <item>
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>Labels:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_COCO">
+             <property name="text">
+              <string>COCO</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_ImageNet">
+             <property name="text">
+              <string>ImageNet</string>
+             </property>
             </widget>
            </item>
           </layout>

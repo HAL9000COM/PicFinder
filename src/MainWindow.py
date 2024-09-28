@@ -206,7 +206,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             settings.value("classification_threshold", 0.7)
         )
         self.settings["object_detection_model"] = settings.value(
-            "object_detection_model", "YOLOv8n COCO"
+            "object_detection_model", "YOLOv8n"
+        )
+        self.settings["object_detection_dataset"] = settings.value(
+            "object_detection_dataset", ["COCO"]
         )
         self.settings["object_detection_conf_threshold"] = float(
             settings.value("object_detection_conf_threshold", 0.7)

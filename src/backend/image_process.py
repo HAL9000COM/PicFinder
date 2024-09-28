@@ -120,61 +120,56 @@ class ClassificationWorker(QObject):
 def object_detection(
     image: np.ndarray,
     model: str,
+    dataset: list[str],
     conf_threshold: float = 0.7,
     iou_threshold: float = 0.5,
 ):
-    match model:
-        case "YOLOv8n COCO":
-            YOLOv8_path = models_dir / "yolov8n.onnx"
-            class_name_list = coco
-
-        case "YOLOv8s COCO":
-            YOLOv8_path = models_dir / "yolov8s.onnx"
-            class_name_list = coco
-
-        case "YOLOv8m COCO":
-            YOLOv8_path = models_dir / "yolov8m.onnx"
-            class_name_list = coco
-
-        case "YOLOv8l COCO":
-            YOLOv8_path = models_dir / "yolov8l.onnx"
-            class_name_list = coco
-
-        case "YOLOv8x COCO":
-            YOLOv8_path = models_dir / "yolov8x.onnx"
-            class_name_list = coco
-
-        case "YOLOv8n Open Images v7":
-            YOLOv8_path = models_dir / "yolov8n-oiv7.onnx"
-            class_name_list = open_images_v7
-
-        case "YOLOv8s Open Images v7":
-            YOLOv8_path = models_dir / "yolov8s-oiv7.onnx"
-            class_name_list = open_images_v7
-
-        case "YOLOv8m Open Images v7":
-            YOLOv8_path = models_dir / "yolov8m-oiv7.onnx"
-            class_name_list = open_images_v7
-
-        case "YOLOv8l Open Images v7":
-            YOLOv8_path = models_dir / "yolov8l-oiv7.onnx"
-            class_name_list = open_images_v7
-
-        case "YOLOv8x Open Images v7":
-            YOLOv8_path = models_dir / "yolov8x-oiv7.onnx"
-            class_name_list = open_images_v7
-
-        case _:
+    def YOLO_process(
+        YOLOv8_path, conf_threshold, iou_threshold, image, class_name_list
+    ):
+        yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
+        _, scores, class_ids = yolo(image)
+        if not class_ids:
             return []
-    yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
-    _, scores, class_ids = yolo(image)
-    if len(class_ids) == 0:
+        class_names = [class_name_list[class_id] for class_id in class_ids]
+        return [
+            (class_name, scores[class_names.index(class_name)])
+            for class_name in class_names
+        ]
+
+    model_paths = {
+        "YOLOv8n": ["yolov8n.onnx", "yolov8n-oiv7.onnx"],
+        "YOLOv8s": ["yolov8s.onnx", "yolov8s-oiv7.onnx"],
+        "YOLOv8m": ["yolov8m.onnx", "yolov8m-oiv7.onnx"],
+        "YOLOv8l": ["yolov8l.onnx", "yolov8l-oiv7.onnx"],
+        "YOLOv8x": ["yolov8x.onnx", "yolov8x-oiv7.onnx"],
+    }
+    datasets = {
+        "COCO": coco,
+        "ImageNet": image_net,
+    }
+
+    if model not in model_paths:
         return []
-    class_names = [class_name_list[class_id] for class_id in class_ids]
-    result = [
-        (class_name, scores[class_names.index(class_name)])
-        for class_name in class_names
-    ]
+
+    yolo_paths = []
+    class_name_lists = []
+    for dataset_name in dataset:
+        if dataset_name in datasets:
+            if dataset_name == "COCO":
+                yolo_paths.append(models_dir / model_paths[model][0])
+            if dataset_name == "ImageNet":
+                yolo_paths.append(models_dir / model_paths[model][1])
+            class_name_lists.append(datasets[dataset_name])
+
+    result = []
+    for YOLOv8_path, class_name_list in zip(yolo_paths, class_name_lists):
+        result.extend(
+            YOLO_process(
+                YOLOv8_path, conf_threshold, iou_threshold, image, class_name_list
+            )
+        )
+
     return result
 
 
@@ -187,6 +182,7 @@ class ObjectDetectionWorker(QObject):
         self,
         image_list: list[Path],
         object_detection_model: str,
+        object_detection_dataset: list[str],
         object_detection_conf_threshold: float,
         object_detection_iou_threshold: float,
         **kwargs,
@@ -194,6 +190,7 @@ class ObjectDetectionWorker(QObject):
         super(ObjectDetectionWorker, self).__init__()
         self.image_list = image_list
         self.model = object_detection_model
+        self.dataset = object_detection_dataset
         self.conf_threshold = object_detection_conf_threshold
         self.iou_threshold = object_detection_iou_threshold
         self.kwargs = kwargs
@@ -201,7 +198,11 @@ class ObjectDetectionWorker(QObject):
     def run(self):
         try:
             results = self.object_detection_batch(
-                self.image_list, self.model, self.conf_threshold, self.iou_threshold
+                self.image_list,
+                self.model,
+                self.dataset,
+                self.conf_threshold,
+                self.iou_threshold,
             )
             self.result.emit(results)
             self.finished.emit()
@@ -213,55 +214,39 @@ class ObjectDetectionWorker(QObject):
         self,
         images: list[np.ndarray],
         model: str,
+        dataset: list[str],
         conf_threshold: float = 0.7,
         iou_threshold: float = 0.5,
     ):
+        yolo_path = []
+        class_name_list_list = []
+        model_paths = {
+            "YOLOv8n": ["yolov8n.onnx", "yolov8n-oiv7.onnx"],
+            "YOLOv8s": ["yolov8s.onnx", "yolov8s-oiv7.onnx"],
+            "YOLOv8m": ["yolov8m.onnx", "yolov8m-oiv7.onnx"],
+            "YOLOv8l": ["yolov8l.onnx", "yolov8l-oiv7.onnx"],
+            "YOLOv8x": ["yolov8x.onnx", "yolov8x-oiv7.onnx"],
+        }
+        datasets = {
+            "COCO": coco,
+            "ImageNet": image_net,
+        }
 
-        match model:
-            case "YOLOv8n COCO":
-                YOLOv8_path = models_dir / "yolov8n.onnx"
-                class_name_list = coco
+        if model in model_paths:
+            for dataset_name in dataset:
+                if dataset_name == "COCO":
+                    yolo_path.append(models_dir / model_paths[model][0])
+                    class_name_list_list.append(datasets[dataset_name])
+                if dataset_name == "ImageNet":
+                    yolo_path.append(models_dir / model_paths[model][1])
+                    class_name_list_list.append(datasets[dataset_name])
+        else:
+            return [[] for _ in images]
 
-            case "YOLOv8s COCO":
-                YOLOv8_path = models_dir / "yolov8s.onnx"
-                class_name_list = coco
-
-            case "YOLOv8m COCO":
-                YOLOv8_path = models_dir / "yolov8m.onnx"
-                class_name_list = coco
-
-            case "YOLOv8l COCO":
-                YOLOv8_path = models_dir / "yolov8l.onnx"
-                class_name_list = coco
-
-            case "YOLOv8x COCO":
-                YOLOv8_path = models_dir / "yolov8x.onnx"
-                class_name_list = coco
-
-            case "YOLOv8n Open Images v7":
-                YOLOv8_path = models_dir / "yolov8n-oiv7.onnx"
-                class_name_list = open_images_v7
-
-            case "YOLOv8s Open Images v7":
-                YOLOv8_path = models_dir / "yolov8s-oiv7.onnx"
-                class_name_list = open_images_v7
-
-            case "YOLOv8m Open Images v7":
-                YOLOv8_path = models_dir / "yolov8m-oiv7.onnx"
-                class_name_list = open_images_v7
-
-            case "YOLOv8l Open Images v7":
-                YOLOv8_path = models_dir / "yolov8l-oiv7.onnx"
-                class_name_list = open_images_v7
-
-            case "YOLOv8x Open Images v7":
-                YOLOv8_path = models_dir / "yolov8x-oiv7.onnx"
-                class_name_list = open_images_v7
-
-            case _:
-                return [[] for _ in images]
         results = []
-        yolo = YOLOv8(YOLOv8_path, conf_threshold, iou_threshold)
+        yolo_list = []
+        for i, YOLOv8_path in enumerate(yolo_path):
+            yolo_list.append(YOLOv8(YOLOv8_path, conf_threshold, iou_threshold))
 
         total_images = self.kwargs["total_files"]
         finished_files = self.kwargs["finished_files"]
@@ -269,18 +254,19 @@ class ObjectDetectionWorker(QObject):
         for i, image in enumerate(images):
             progress = f"Object detection progress: {i+1+finished_files}/{total_images}"
             self.progress.emit(progress)
-
-            _, scores, class_ids = yolo(image)
-            if len(class_ids) == 0:
-                results.append([])
-                continue
-            class_names = [class_name_list[class_id] for class_id in class_ids]
-            result = [
-                (class_name, scores[class_names.index(class_name)])
-                for class_name in class_names
-            ]
+            result = []
+            for yolo, class_name_list in zip(yolo_list, class_name_list_list):
+                _, scores, class_ids = yolo(image)
+                if len(class_ids) == 0:
+                    continue
+                class_names = [class_name_list[class_id] for class_id in class_ids]
+                result.extend(
+                    [
+                        (class_name, scores[class_names.index(class_name)])
+                        for class_name in class_names
+                    ]
+                )
             results.append(result)
-
         return results
 
 
@@ -347,7 +333,8 @@ def read_img(
     img_path: Path,
     classification_model="YOLOv8n",
     classification_threshold=0.7,
-    object_detection_model="YOLOv8n COCO",
+    object_detection_model="YOLOv8n",
+    object_detection_dataset=["COCO"],
     object_detection_conf_threshold=0.7,
     object_detection_iou_threshold=0.5,
     OCR_model="RapidOCR",
@@ -388,6 +375,7 @@ def read_img(
             obj_res = object_detection(
                 img,
                 object_detection_model,
+                object_detection_dataset,
                 object_detection_conf_threshold,
                 object_detection_iou_threshold,
             )

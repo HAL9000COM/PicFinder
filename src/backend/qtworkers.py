@@ -53,6 +53,7 @@ class IndexWorker(QObject):
                 classification_model=self.kwargs["classification_model"],
                 classification_threshold=self.kwargs["classification_threshold"],
                 object_detection_model=self.kwargs["object_detection_model"],
+                object_detection_dataset=self.kwargs["object_detection_dataset"],
                 object_detection_confidence=self.kwargs[
                     "object_detection_conf_threshold"
                 ],
@@ -228,7 +229,13 @@ class IndexWorker(QObject):
             object = ""
             object_confidence_avg = 0
         else:
-            object = " ".join([res[0] for res in object_detection_list])
+            obj_list = []
+            for res in object_detection_list:
+                if isinstance(res[0], list):
+                    obj_list.append(res[0][1])
+                else:
+                    obj_list.append(res[0])
+            object = " ".join(obj_list)
             object_confidence_list = [res[1] for res in object_detection_list]
             object_confidence_avg = sum(object_confidence_list) / len(  # type: ignore
                 object_confidence_list
