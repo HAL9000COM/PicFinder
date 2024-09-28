@@ -94,6 +94,8 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 # prepare for multi-platform
 if sys.platform == "win32":
     lib_dir_name = "libsimple-windows-x64"
+elif sys.platform == "linux":
+    lib_dir_name = "libsimple-linux-ubuntu-latest"
 else:
     lib_dir_name = "libsimple-windows-x64"
 
@@ -109,7 +111,7 @@ else:
 class DB:
     def __init__(self, path, jieba=False):
         extention_path = lib_dir / "simple"
-        dict_path = lib_dir.parent / "dict"
+        dict_path = lib_dir / "dict"
 
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.enable_load_extension(True)
