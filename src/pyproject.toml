@@ -19,6 +19,8 @@ black = "^23.1.0"
 notebook = "^6.5.3"
 cx-freeze = "^6.15.16"
 nuitka = "^2.1.5"
+onnx = "^1.16.2"
+ultralytics = "^8.2.102"
 
 [build-system]
 requires = ["poetry-core"]
