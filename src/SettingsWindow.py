@@ -61,15 +61,15 @@ class SettingsWindow(QWidget, Ui_Settings):
             self.checkBox_COCO.setEnabled(True)
 
         if self.object_detection_model not in self.models_oiv:
-            self.checkBox_ImageNet.setChecked(False)
-            self.checkBox_ImageNet.setEnabled(False)
+            self.checkBox_OpenImage.setChecked(False)
+            self.checkBox_OpenImage.setEnabled(False)
         else:
-            self.checkBox_ImageNet.setEnabled(True)
+            self.checkBox_OpenImage.setEnabled(True)
         self.object_detection_dataset = []
         if self.checkBox_COCO.isChecked():
             self.object_detection_dataset.append("COCO")
-        if self.checkBox_ImageNet.isChecked():
-            self.object_detection_dataset.append("ImageNet")
+        if self.checkBox_OpenImage.isChecked():
+            self.object_detection_dataset.append("OpenImage")
 
     def load_settings(self):
         self.classification_model = self.settings.value(
@@ -99,10 +99,10 @@ class SettingsWindow(QWidget, Ui_Settings):
             self.checkBox_COCO.setChecked(True)
         else:
             self.checkBox_COCO.setChecked(False)
-        if "ImageNet" in self.object_detection_dataset:
-            self.checkBox_ImageNet.setChecked(True)
+        if "OpenImage" in self.object_detection_dataset:
+            self.checkBox_OpenImage.setChecked(True)
         else:
-            self.checkBox_ImageNet.setChecked(False)
+            self.checkBox_OpenImage.setChecked(False)
 
         self.check_models()
         self.doubleSpinBox_object_detection_confidence.setValue(

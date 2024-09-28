@@ -107,10 +107,10 @@ class Ui_Settings(object):
 
         self.horizontalLayout_11.addWidget(self.checkBox_COCO)
 
-        self.checkBox_ImageNet = QCheckBox(self.groupBox_3)
-        self.checkBox_ImageNet.setObjectName(u"checkBox_ImageNet")
+        self.checkBox_OpenImage = QCheckBox(self.groupBox_3)
+        self.checkBox_OpenImage.setObjectName(u"checkBox_OpenImage")
 
-        self.horizontalLayout_11.addWidget(self.checkBox_ImageNet)
+        self.horizontalLayout_11.addWidget(self.checkBox_OpenImage)
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_11)
@@ -246,7 +246,7 @@ class Ui_Settings(object):
 
         self.label_8.setText(QCoreApplication.translate("Settings", u"Labels:", None))
         self.checkBox_COCO.setText(QCoreApplication.translate("Settings", u"COCO", None))
-        self.checkBox_ImageNet.setText(QCoreApplication.translate("Settings", u"ImageNet", None))
+        self.checkBox_OpenImage.setText(QCoreApplication.translate("Settings", u"Open Images", None))
         self.label_5.setText(QCoreApplication.translate("Settings", u"Confidence:", None))
         self.label_6.setText(QCoreApplication.translate("Settings", u"IoU:", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Settings", u"OCR", None))

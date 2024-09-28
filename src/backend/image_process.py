@@ -146,7 +146,7 @@ def object_detection(
     }
     datasets = {
         "COCO": coco,
-        "ImageNet": image_net,
+        "OpenImage": open_images_v7,
     }
 
     if model not in model_paths:
@@ -158,7 +158,7 @@ def object_detection(
         if dataset_name in datasets:
             if dataset_name == "COCO":
                 yolo_paths.append(models_dir / model_paths[model][0])
-            if dataset_name == "ImageNet":
+            if dataset_name == "OpenImage":
                 yolo_paths.append(models_dir / model_paths[model][1])
             class_name_lists.append(datasets[dataset_name])
 
@@ -229,7 +229,7 @@ class ObjectDetectionWorker(QObject):
         }
         datasets = {
             "COCO": coco,
-            "ImageNet": image_net,
+            "OpenImage": open_images_v7,
         }
 
         if model in model_paths:
@@ -237,7 +237,7 @@ class ObjectDetectionWorker(QObject):
                 if dataset_name == "COCO":
                     yolo_path.append(models_dir / model_paths[model][0])
                     class_name_list_list.append(datasets[dataset_name])
-                if dataset_name == "ImageNet":
+                if dataset_name == "OpenImage":
                     yolo_path.append(models_dir / model_paths[model][1])
                     class_name_list_list.append(datasets[dataset_name])
         else:

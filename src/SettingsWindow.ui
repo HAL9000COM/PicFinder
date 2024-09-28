@@ -123,9 +123,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_ImageNet">
+            <widget class="QCheckBox" name="checkBox_OpenImage">
              <property name="text">
-              <string>ImageNet</string>
+              <string>Open Images</string>
              </property>
             </widget>
            </item>
