@@ -33,7 +33,8 @@ if __name__ == "__main__":
     if app is None:
         app = QApplication(sys.argv)
     window = MainWindow()
-    window.setWindowIcon(QIcon("icon.ico"))
+    icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
+    window.setWindowIcon(QIcon(icon_path))
     window.show()
     code = app.exec()
     os._exit(code)

@@ -206,7 +206,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             settings.value("classification_threshold", 0.7)
         )
         self.settings["object_detection_model"] = settings.value(
-            "object_detection_model", "YOLOv8n COCO"
+            "object_detection_model", "YOLOv8n"
+        )
+        self.settings["object_detection_dataset"] = settings.value(
+            "object_detection_dataset", ["COCO"]
         )
         self.settings["object_detection_conf_threshold"] = float(
             settings.value("object_detection_conf_threshold", 0.7)
@@ -274,13 +277,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 class AboutWindow(QWidget):
+
     def __init__(self):
         super(AboutWindow, self).__init__()
         self.setWindowTitle("About")
         self.setWindowIcon(QIcon("icon.ico"))
         self.setWindowModality(Qt.NonModal)
 
-        self.label_1 = QLabel("PicFinder Version: 0.2.0\n")
+        self.label_1 = QLabel(
+            f"PicFinder Version: {self.get_version()}, commit: {self.get_commit_hash()}\n"
+        )
         self.label_2 = QLabel("Author: HAL9000COM\n")
         self.label_3 = QLabel(
             "For license and source code, please visit:\n"
@@ -307,3 +313,22 @@ class AboutWindow(QWidget):
         self.layout_1.addWidget(self.label_4)
 
         self.setLayout(self.layout_1)
+
+    def get_version(self):
+        try:
+            with open(Path(__file__).parent.resolve() / "VERSION") as f:
+                # return first line
+                version = f.readline().strip()
+                return version
+        except:
+            return "Unknown"
+
+    def get_commit_hash(self):
+        try:
+            with open(Path(__file__).parent.resolve() / "VERSION") as f:
+                # return second line
+                f.readline()
+                commit_hash = f.readline().strip()
+                return commit_hash
+        except:
+            return "Unknown"

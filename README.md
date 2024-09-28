@@ -31,13 +31,7 @@ If you clone the repository:
 
 ## EXE creation
 
-1. Using cx_Freeze
-
-    ```bash
-    python dist.py build
-    ```
-
-2. Using Nuitka
+### Using Nuitka
 
     ```bash
     python -m nuitka main.py --standalone --enable-plugin=pyside6  --include-data-dir=./backend/libsimple-windows-x64=lib/backend/libsimple-windows-x64 --include-data-files=./backend/libsimple-windows-x64/simple.dll=lib/backend/libsimple-windows-x64/simple.dll --include-data-dir=./models=models --include-data-dir=./.venv/Lib/site-packages/rapidocr_onnxruntime=rapidocr_onnxruntime --windows-console-mode=disable

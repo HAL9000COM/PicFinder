@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS history (
     classification_model TEXT,
     classification_threshold REAL,
     object_detection_model TEXT,
+    object_detection_dataset TEXT,
     object_detection_confidence REAL,
     object_detection_iou REAL,
     OCR_model TEXT,
@@ -86,13 +87,15 @@ DELETE FROM pictures WHERE path = ?;
 """
 
 HISTORY_INSERT_SQL = """
-INSERT INTO history (classification_model, classification_threshold, object_detection_model, object_detection_confidence, object_detection_iou, OCR_model, Full_update)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO history (classification_model, classification_threshold, object_detection_model,object_detection_dataset, object_detection_confidence, object_detection_iou, OCR_model, Full_update)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 """
 
 # prepare for multi-platform
 if sys.platform == "win32":
     lib_dir_name = "libsimple-windows-x64"
+elif sys.platform == "linux":
+    lib_dir_name = "libsimple-linux-ubuntu-latest"
 else:
     lib_dir_name = "libsimple-windows-x64"
 
@@ -100,9 +103,9 @@ else:
 is_nuitka = "__compiled__" in globals()
 
 if is_nuitka or getattr(sys, "frozen", False):
-    lib_dir = Path(sys.argv[0]).parent / "lib" / "backend" / lib_dir_name
+    lib_dir = Path(sys.argv[0]).parent / "lib" / "backend" / "libsimple" / lib_dir_name
 else:
-    lib_dir = Path(__file__).resolve().parent / lib_dir_name
+    lib_dir = Path(__file__).resolve().parent / "libsimple" / lib_dir_name
 
 
 class DB:
@@ -140,17 +143,20 @@ class DB:
         classification_model,
         classification_threshold,
         object_detection_model,
+        object_detection_dataset,
         object_detection_confidence,
         object_detection_iou,
         OCR_model,
         full_update,
     ):
+        object_detection_dataset = ",".join(object_detection_dataset)
         self.conn.execute(
             HISTORY_INSERT_SQL,
             (
                 classification_model,
                 classification_threshold,
                 object_detection_model,
+                object_detection_dataset,
                 object_detection_confidence,
                 object_detection_iou,
                 OCR_model,

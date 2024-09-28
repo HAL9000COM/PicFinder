@@ -1,8 +1,9 @@
 __pycache__
-poetry.lock
-!backend/libsimple-windows-x64/simple.dll
 .vscode
 VERSION
 build_windows/
 models/
+main.build/
 main.dist/
+libsimple/
+src/installer_dist/
