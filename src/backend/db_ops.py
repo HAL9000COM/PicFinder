@@ -114,6 +114,8 @@ class DB:
         dict_path = lib_dir / "dict"
 
         self.conn = sqlite3.connect(path, check_same_thread=False)
+        self.conn.execute("PRAGMA journal_mode=WAL;")
+        self.conn.execute("PRAGMA temp_store = 2;")
         self.conn.enable_load_extension(True)
         self.conn.load_extension(extention_path.as_posix())
         self.conn.execute(TABLE_SQL)
