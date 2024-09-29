@@ -340,7 +340,7 @@ class OCRWorker(QObject):
                         image, use_det=True, use_cls=True, use_rec=True
                     )
                 except Exception as e:
-                    path_list = self.kwargs["path_list"]
+                    path_list = self.kwargs.get("path_list", [])
                     if len(path_list) > i:
                         logging.error(
                             f"Image: {path_list[i]}, OCR failed. Error:{e}",
@@ -648,6 +648,9 @@ class HashReadWorker(QObject):
                                 np.frombuffer(file_bytes, np.uint8),
                                 cv2.IMREAD_UNCHANGED,
                             )
+                            if len(img.shape) == 3 and img.shape[2] == 4:
+                                # Convert from BGRA to BGR
+                                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
                             if not isinstance(img, np.ndarray):
                                 img = np.zeros((100, 100, 3), dtype=np.uint8)
                                 logging.error(
