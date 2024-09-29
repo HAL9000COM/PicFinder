@@ -646,11 +646,8 @@ class HashReadWorker(QObject):
                         try:
                             img = cv2.imdecode(
                                 np.frombuffer(file_bytes, np.uint8),
-                                cv2.IMREAD_UNCHANGED,
+                                cv2.IMREAD_COLOR,
                             )
-                            if len(img.shape) == 3 and img.shape[2] == 4:
-                                # Convert from BGRA to BGR
-                                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
                             if not isinstance(img, np.ndarray):
                                 img = np.zeros((100, 100, 3), dtype=np.uint8)
                                 logging.error(
