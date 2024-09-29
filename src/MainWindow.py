@@ -94,6 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(
                 f"Folder: {self.folder_path.as_posix()} , Index Found"
             )
+            self.search()
         else:
             self.statusbar.showMessage(
                 f"Folder: {self.folder_path.as_posix()} , Index Not Found"
@@ -165,23 +166,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except:
             pass
         query = self.lineEdit_search.text()
-        if query:
-            if self.db_exists_check():
-                self.search_worker = SearchWorker(self.db_path, query)
-                self.search_worker_thread = QThread()
-                self.search_worker.moveToThread(self.search_worker_thread)
-                self.search_worker_thread.started.connect(self.search_worker.run)
-                self.search_worker.finished.connect(self.search_finished)
-                self.search_worker.finished.connect(self.search_worker_thread.quit)
-                self.search_worker.finished.connect(self.search_worker.deleteLater)
-                self.search_worker_thread.finished.connect(
-                    self.search_worker_thread.deleteLater
-                )
-                self.search_worker.result.connect(self.search_result)
-                self.search_worker_thread.start()
-                self.statusbar.showMessage("Searching...")
-            else:
-                self.statusbar.showMessage("Database not found")
+        if self.db_exists_check():
+            self.search_worker = SearchWorker(self.db_path, query)
+            self.search_worker_thread = QThread()
+            self.search_worker.moveToThread(self.search_worker_thread)
+            self.search_worker_thread.started.connect(self.search_worker.run)
+            self.search_worker.finished.connect(self.search_finished)
+            self.search_worker.finished.connect(self.search_worker_thread.quit)
+            self.search_worker.finished.connect(self.search_worker.deleteLater)
+            self.search_worker_thread.finished.connect(
+                self.search_worker_thread.deleteLater
+            )
+            self.search_worker.result.connect(self.search_result)
+            self.search_worker_thread.start()
+            self.statusbar.showMessage("Searching...")
+        else:
+            self.statusbar.showMessage("Database not found")
 
     def search_finished(self):
         # self.statusbar.showMessage("Search Finished")

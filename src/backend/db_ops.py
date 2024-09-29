@@ -91,6 +91,10 @@ INSERT INTO history (classification_model, classification_threshold, object_dete
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 """
 
+RETURN_ALL_SQL = """
+SELECT * FROM pictures;
+"""
+
 # prepare for multi-platform
 if sys.platform == "win32":
     lib_dir_name = "libsimple-windows-x64"
@@ -127,6 +131,9 @@ class DB:
             self.init_jieba(dict_path.as_posix())
 
     def search(self, query):
+        # if query is empty, return all
+        if not query or query == "":
+            return self.conn.execute(RETURN_ALL_SQL).fetchall()
         if self.jieba:
             return self.conn.execute(SEARCH_JIEBA_SQL, (query,)).fetchall()
         else:
