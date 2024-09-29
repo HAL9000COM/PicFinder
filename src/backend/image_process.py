@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import hashlib
+import importlib.util
 import logging
 import sys
 import time
@@ -9,7 +10,11 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PySide6.QtCore import QObject, QThread, Signal
-from rapidocr_onnxruntime import RapidOCR
+
+try:
+    from rapidocr_paddle import RapidOCR
+except ImportError:
+    from rapidocr_onnxruntime import RapidOCR
 
 from backend.resources.label_list import coco, image_net, open_images_v7
 from backend.yolo import YOLOv8, YOLOv8Cls
@@ -273,7 +278,12 @@ class ObjectDetectionWorker(QObject):
 def OCR(image: np.ndarray, model: str):
     if model == "RapidOCR":
 
-        engine = RapidOCR()
+        if importlib.util.find_spec("rapidocr_paddle") is not None:
+            engine = RapidOCR(det_use_cuda=True, cls_use_cuda=True, rec_use_cuda=True)
+        else:
+            engine = RapidOCR(
+                det_use_cuda=False, cls_use_cuda=False, rec_use_cuda=False
+            )
 
         result, elapse = engine(image, use_det=True, use_cls=True, use_rec=True)
         if result is None or len(result) == 0:
@@ -308,7 +318,15 @@ class OCRWorker(QObject):
 
     def OCR_batch(self, images: list[np.ndarray], model: str):
         if model == "RapidOCR":
-            engine = RapidOCR()
+            # if using paddle OCR
+            if importlib.util.find_spec("rapidocr_paddle") is not None:
+                engine = RapidOCR(
+                    det_use_cuda=True, cls_use_cuda=True, rec_use_cuda=True
+                )
+            else:
+                engine = RapidOCR(
+                    det_use_cuda=False, cls_use_cuda=False, rec_use_cuda=False
+                )
 
             total_images = self.kwargs["total_files"]
             finished_files = self.kwargs["finished_files"]

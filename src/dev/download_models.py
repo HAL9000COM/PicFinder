@@ -33,18 +33,13 @@ if __name__ == "__main__":
             "yolov8n.pt",
             "yolov8n-cls.pt",
         ]
-
+    os.makedirs(Path(__file__).parent.parent / "models", exist_ok=True)
     for model_name in model_names:
         model = YOLO(model_name)  # load a pretrained model (recommended for training)
         path = model.export(
             format="onnx", dynamic=True
-        )  # export the model to ONNX format
-
-    # copy the models to the src/models
-    os.makedirs(Path(__file__).parent.parent / "models", exist_ok=True)
-    for model_name in model_names:
+        )  # export the model to ONNX format.
         shutil.move(
-            model_name.replace(".pt", ".onnx"),
+            path,
             f"{Path(__file__).parent.parent}/models/{model_name.replace('.pt','.onnx')}",
         )
-        # os.remove(model_name)
