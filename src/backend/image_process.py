@@ -301,7 +301,7 @@ class OCRWorker(QObject):
     progress = Signal(str)
     result = Signal(list)
 
-    def __init__(self, image_list: list[Path], OCR_model: str, **kwargs):
+    def __init__(self, image_list: list[np.ndarray], OCR_model: str, **kwargs):
         super(OCRWorker, self).__init__()
         self.image_list = image_list
         self.model = OCR_model
@@ -335,7 +335,23 @@ class OCRWorker(QObject):
             for i, image in enumerate(images):
                 progress = f"OCR progress: {i+1+finished_files}/{total_images}"
                 self.progress.emit(progress)
-                result, elapse = engine(image, use_det=True, use_cls=True, use_rec=True)
+                try:
+                    result, elapse = engine(
+                        image, use_det=True, use_cls=True, use_rec=True
+                    )
+                except Exception as e:
+                    path_list = self.kwargs["path_list"]
+                    if len(path_list) > i:
+                        logging.error(
+                            f"Image: {path_list[i]}, OCR failed. Error:{e}",
+                            exc_info=True,
+                        )
+                    else:
+                        logging.error(
+                            f"Image Index:{i}, OCR failed. Error:{e}", exc_info=True
+                        )
+                    results.append([])
+                    continue
                 if result is None or len(result) == 0:
                     results.append([])
                     continue
@@ -440,6 +456,7 @@ class ReadImgWorker(QObject):
         self.worker_flags["classification"] = False
         self.worker_flags["object_detection"] = False
         self.worker_flags["OCR"] = False
+        self.kwargs["path_list"] = image_list
 
     def run(self):
         # start hashing and reading images
