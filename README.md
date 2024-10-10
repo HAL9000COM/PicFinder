@@ -16,12 +16,12 @@ A simple windows application to search for images in a directory.
 3. Select the directory to Index using models (only required once)
 4. Search
 
-![Demo](res/demo.gif)
+![Demo](doc/demo.gif)
 
 If you clone the repository:
 
-1. Install the required packages using Poetry.
-2. Put the ONNX format YOLO11 models in the `models` directory.
+1. Install the required packages using Poetry. For cpu version, use `poetry install --with cpu,dev`. For gpu version, use `poetry install --with gpu,dev`.
+2. Put the ONNX format YOLO11 models in the `models` directory. This can be done using the `download_models.py` script.
 
 ### Note
 
@@ -31,12 +31,8 @@ If you clone the repository:
 
 ## EXE creation
 
-### Using Nuitka
-
-    ```bash
-    python -m nuitka main.py --standalone --enable-plugin=pyside6  --include-data-dir=./backend/libsimple-windows-x64=lib/backend/libsimple-windows-x64 --include-data-files=./backend/libsimple-windows-x64/simple.dll=lib/backend/libsimple-windows-x64/simple.dll --include-data-dir=./models=models --include-data-dir=./.venv/Lib/site-packages/rapidocr_onnxruntime=rapidocr_onnxruntime --windows-console-mode=disable
-
-    ```
+1. Run `build.py` to create the exe file. The exe file will be in the `main.dist` directory.
+2. Run `build.iss` to create the installer. The installer will be in the `installer_dist` directory.
 
 ## Details
 
