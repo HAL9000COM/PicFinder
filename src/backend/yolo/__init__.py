@@ -1,1 +1,1 @@
-from .YOLO import YOLOv8, YOLOv8Cls
+from .YOLO import YOLO11, YOLO11Cls

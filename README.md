@@ -5,7 +5,7 @@ A simple windows application to search for images in a directory.
 ## Features
 
 * Search for text in images using OCR. Tested with English, Traditional Chinese, Simplified Chinese.
-* Search for objects in images using YOLOv8. Labels from COCO or Open Image V7.
+* Search for objects in images using YOLO11. Labels from COCO.
 * Search for images using its class. Labels from ImageNet.
 * Supported image formats: formats supported by OpenCV: bmp, dib, jpeg, jpg, jpe, jp2, png, webp, avif, pbm, pgm, ppm, pxm, pnm, pfm, sr, ras, tiff, tif, exr, hdr, pic.
 
@@ -21,13 +21,13 @@ A simple windows application to search for images in a directory.
 If you clone the repository:
 
 1. Install the required packages using Poetry.
-2. Put the ONNX format YOLOv8 models in the `models` directory.
+2. Put the ONNX format YOLO11 models in the `models` directory.
 
 ### Note
 
  The first time you run the application, it will take some time to index the images in the directory.
 
- Only YOLOv8n and YOLOv8n COCO models are included in the minimal release. For more models, download the ONNX format models and put them in the `models` directory.
+ Only YOLO11n and YOLO11n COCO models are included in the minimal release. For more models, download the ONNX format models and put them in the `models` directory.
 
 ## EXE creation
 
@@ -43,4 +43,4 @@ If you clone the repository:
 * OCR is done using [RapidOCR](https://github.com/RapidAI/RapidOCR)
 * Object detection adapted from [ONNX-YOLOv8-Object-Detection](https://github.com/ibaiGorordo/ONNX-YOLOv8-Object-Detection)
 * Search tokenizer from [Simple](https://github.com/wangfenjin/simple)
-* Object detection and image classification model from [YOLOv8](https://github.com/ultralytics/ultralytics)
+* Object detection and image classification model from [YOLO11](https://github.com/ultralytics/ultralytics)

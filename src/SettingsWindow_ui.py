@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'SettingsWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.0
+## Created by: Qt User Interface Compiler version 6.7.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -25,7 +25,7 @@ class Ui_Settings(object):
             Settings.setObjectName(u"Settings")
         Settings.resize(500, 400)
         icon = QIcon()
-        icon.addFile(u"icon.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u"icon.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         Settings.setWindowIcon(icon)
         self.verticalLayout_4 = QVBoxLayout(Settings)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
@@ -93,27 +93,6 @@ class Ui_Settings(object):
 
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
-
-        self.horizontalLayout_11 = QHBoxLayout()
-        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
-        self.label_8 = QLabel(self.groupBox_3)
-        self.label_8.setObjectName(u"label_8")
-
-        self.horizontalLayout_11.addWidget(self.label_8)
-
-        self.checkBox_COCO = QCheckBox(self.groupBox_3)
-        self.checkBox_COCO.setObjectName(u"checkBox_COCO")
-        self.checkBox_COCO.setChecked(True)
-
-        self.horizontalLayout_11.addWidget(self.checkBox_COCO)
-
-        self.checkBox_OpenImage = QCheckBox(self.groupBox_3)
-        self.checkBox_OpenImage.setObjectName(u"checkBox_OpenImage")
-
-        self.horizontalLayout_11.addWidget(self.checkBox_OpenImage)
-
-
-        self.verticalLayout_2.addLayout(self.horizontalLayout_11)
 
         self.horizontalLayout_9 = QHBoxLayout()
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
@@ -244,9 +223,6 @@ class Ui_Settings(object):
         self.label_2.setText(QCoreApplication.translate("Settings", u"Model:", None))
         self.comboBox_object_detection_model.setItemText(0, QCoreApplication.translate("Settings", u"None", None))
 
-        self.label_8.setText(QCoreApplication.translate("Settings", u"Labels:", None))
-        self.checkBox_COCO.setText(QCoreApplication.translate("Settings", u"COCO", None))
-        self.checkBox_OpenImage.setText(QCoreApplication.translate("Settings", u"Open Images", None))
         self.label_5.setText(QCoreApplication.translate("Settings", u"Confidence:", None))
         self.label_6.setText(QCoreApplication.translate("Settings", u"IoU:", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("Settings", u"OCR", None))

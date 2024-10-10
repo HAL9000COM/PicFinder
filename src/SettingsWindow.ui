@@ -104,34 +104,6 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_11">
-           <item>
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>Labels:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_COCO">
-             <property name="text">
-              <string>COCO</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_OpenImage">
-             <property name="text">
-              <string>Open Images</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
           <layout class="QHBoxLayout" name="horizontalLayout_9">
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
