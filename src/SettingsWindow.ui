@@ -17,7 +17,7 @@
    <iconset>
     <normaloff>icon.ico</normaloff>icon.ico</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
+  <layout class="QVBoxLayout" name="verticalLayout_6">
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
@@ -235,6 +235,22 @@
          </layout>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="title">
+      <string>Search Setting</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="checkBox_load_all">
+        <property name="text">
+         <string>Load Images when start up</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

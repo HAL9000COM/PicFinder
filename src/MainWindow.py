@@ -94,7 +94,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(
                 f"Folder: {self.folder_path.as_posix()} , Index Found"
             )
-            self.search()
+            if self.settings["load_all"] == True:
+                self.search()
         else:
             self.statusbar.showMessage(
                 f"Folder: {self.folder_path.as_posix()} , Index Not Found"
@@ -220,6 +221,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings["OCR_model"] = settings.value("OCR_model", "RapidOCR")
         self.settings["FullUpdate"] = settings.value("FullUpdate", False, type=bool)
         self.settings["batch_size"] = int(settings.value("batch_size", 100))
+        self.settings["load_all"] = settings.value("load_all", False)
 
     def open_about(self):
         self.about_window = AboutWindow()

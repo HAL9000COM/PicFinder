@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'SettingsWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.3
+## Created by: Qt User Interface Compiler version 6.7.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -27,8 +27,8 @@ class Ui_Settings(object):
         icon = QIcon()
         icon.addFile(u"icon.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         Settings.setWindowIcon(icon)
-        self.verticalLayout_4 = QVBoxLayout(Settings)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_6 = QVBoxLayout(Settings)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.groupBox = QGroupBox(Settings)
         self.groupBox.setObjectName(u"groupBox")
         self.verticalLayout_3 = QVBoxLayout(self.groupBox)
@@ -163,7 +163,7 @@ class Ui_Settings(object):
         self.verticalLayout_3.addWidget(self.groupBox_4)
 
 
-        self.verticalLayout_4.addWidget(self.groupBox)
+        self.verticalLayout_6.addWidget(self.groupBox)
 
         self.groupBox_5 = QGroupBox(Settings)
         self.groupBox_5.setObjectName(u"groupBox_5")
@@ -198,12 +198,24 @@ class Ui_Settings(object):
         self.verticalLayout_5.addLayout(self.horizontalLayout_10)
 
 
-        self.verticalLayout_4.addWidget(self.groupBox_5)
+        self.verticalLayout_6.addWidget(self.groupBox_5)
+
+        self.groupBox_6 = QGroupBox(Settings)
+        self.groupBox_6.setObjectName(u"groupBox_6")
+        self.verticalLayout_4 = QVBoxLayout(self.groupBox_6)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.checkBox_load_all = QCheckBox(self.groupBox_6)
+        self.checkBox_load_all.setObjectName(u"checkBox_load_all")
+
+        self.verticalLayout_4.addWidget(self.checkBox_load_all)
+
+
+        self.verticalLayout_6.addWidget(self.groupBox_6)
 
         self.pushButton_save = QPushButton(Settings)
         self.pushButton_save.setObjectName(u"pushButton_save")
 
-        self.verticalLayout_4.addWidget(self.pushButton_save)
+        self.verticalLayout_6.addWidget(self.pushButton_save)
 
 
         self.retranslateUi(Settings)
@@ -233,6 +245,8 @@ class Ui_Settings(object):
         self.groupBox_5.setTitle(QCoreApplication.translate("Settings", u"Index Setting", None))
         self.checkBox_update.setText(QCoreApplication.translate("Settings", u"Fully Update Database", None))
         self.label_7.setText(QCoreApplication.translate("Settings", u"Batch Size:", None))
+        self.groupBox_6.setTitle(QCoreApplication.translate("Settings", u"Search Setting", None))
+        self.checkBox_load_all.setText(QCoreApplication.translate("Settings", u"Load Images when start up", None))
         self.pushButton_save.setText(QCoreApplication.translate("Settings", u"Save", None))
     # retranslateUi
 
