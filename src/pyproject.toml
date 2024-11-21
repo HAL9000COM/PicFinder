@@ -28,6 +28,7 @@ paddlepaddle-gpu = [
     { version = "==2.6.0.post120",platform="win32", source = "paddle" },
     { version = "==2.6.0.post120",platform="linux", source = "paddle-linux" }
 ]
+setuptools= "^75.6.0" # required for paddlepaddle-gpu
 onnxruntime-gpu = "^1.19.2"
 rapidocr-paddle = "^1.3.27"
 
